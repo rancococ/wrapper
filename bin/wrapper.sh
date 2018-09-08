@@ -10,19 +10,22 @@ _RUN_AS_USER=""
 
 #######################################################################################
 # get custom value for _APP_NAME/_APP_LONG_NAME/_APP_DESC/_RUN_AS_USER
-PWD=`pwd`
-BASE_DIR="${PWD}"
-SOURCE="$0"
-while [ -h "$SOURCE"  ]; do
-    BASE_DIR="$( cd -P "$( dirname "$SOURCE"  )" && pwd  )"
-    SOURCE="$(readlink "$SOURCE")"
-    [[ $SOURCE != /*  ]] && SOURCE="$BASE_DIR/$SOURCE"
+# entry base dir
+pwd=`pwd`
+base_dir="${pwd}"
+source="$0"
+while [ -h "$source" ]; do
+    base_dir="$( cd -P "$( dirname "$source" )" && pwd )"
+    source="$(readlink "$source")"
+    [[ $source != /* ]] && source="$base_dir/$source"
 done
-BASE_DIR="$( cd -P "$( dirname "$SOURCE"  )" && pwd  )"
-if [ -x "$BASE_DIR/wrapper-env.sh" ]; then
-  . "$BASE_DIR/wrapper-env.sh" "$BASE_DIR/../conf/wrapper-app-property.conf"
+base_dir="$( cd -P "$( dirname "$source" )" && pwd )"
+cd ${base_dir}
+# read property
+if [ -x "${base_dir}/wrapper-read-property.sh" ]; then
+  . "${base_dir}/wrapper-read-property.sh" "${base_dir}/../conf/wrapper-app-property.conf"
 fi
-
+# print property
 echo "APP_NAME=${_APP_NAME}"
 echo "APP_LONG_NAME=${_APP_LONG_NAME}"
 echo "APP_DESC=${_APP_DESC}"

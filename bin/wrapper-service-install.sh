@@ -2,18 +2,24 @@
 
 set -e
 
-# set envirionment
-PWD=`pwd`
-BASE_DIR="${PWD}"
-SOURCE="$0"
-while [ -h "$SOURCE"  ]; do
-    BASE_DIR="$( cd -P "$( dirname "$SOURCE"  )" && pwd  )"
-    SOURCE="$(readlink "$SOURCE")"
-    [[ $SOURCE != /*  ]] && SOURCE="$BASE_DIR/$SOURCE"
+#
+# entry base dir
+#
+pwd=`pwd`
+base_dir="${pwd}"
+source="$0"
+while [ -h "$source" ]; do
+    base_dir="$( cd -P "$( dirname "$source" )" && pwd )"
+    source="$(readlink "$source")"
+    [[ $source != /* ]] && source="$base_dir/$source"
 done
-BASE_DIR="$( cd -P "$( dirname "$SOURCE"  )" && pwd  )"
-cd $BASE_DIR
+base_dir="$( cd -P "$( dirname "$source" )" && pwd )"
+cd ${base_dir}
 
-if [ -x "$BASE_DIR/wrapper.sh" ]; then
-    "$BASE_DIR/wrapper.sh" "install"
+if [ -x "${base_dir}/wrapper-create-linkfile.sh" ]; then
+    "${base_dir}/wrapper-create-linkfile.sh"
+fi
+
+if [ -x "${base_dir}/wrapper.sh" ]; then
+    "${base_dir}/wrapper.sh" "install"
 fi
