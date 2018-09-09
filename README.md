@@ -11,15 +11,15 @@ java service wrapper 3.5.35
 
 1. build for singleapp:
    cd ./wrapper
-   cp ./conf/wrapper.singleapp.temp ./conf/wrapper.conf
-   cp ./conf/wrapper-app-property.singleapp.temp ./conf/wrapper-app-property.conf
-   cp ./conf/wrapper-java-additional.singleapp.temp ./conf/wrapper-java-additional.conf
+   cp ./conf/wrapper.single.temp ./conf/wrapper.conf
+   cp ./conf/wrapper-app-property.single.temp ./conf/wrapper-app-property.conf
+   cp ./conf/wrapper-java-additional.single.temp ./conf/wrapper-java-additional.conf
    rm -rf ./conf/*.temp
 2. build for tomcatapp:
    cd ./wrapper
-   cp ./conf/wrapper.tomcatapp.temp ./conf/wrapper.conf
-   cp ./conf/wrapper-app-property.tomcatapp.temp ./conf/wrapper-app-property.conf
-   cp ./conf/wrapper-java-additional.tomcatapp.temp ./conf/wrapper-java-additional.conf
+   cp ./conf/wrapper.tomcat.temp ./conf/wrapper.conf
+   cp ./conf/wrapper-app-property.tomcat.temp ./conf/wrapper-app-property.conf
+   cp ./conf/wrapper-java-additional.tomcat.temp ./conf/wrapper-java-additional.conf
    rm -rf ./conf/*.temp
 
 #### 安装教程
