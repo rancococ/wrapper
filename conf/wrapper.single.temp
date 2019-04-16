@@ -39,13 +39,10 @@ wrapper.lang.folder=../lang
 # Wrapper App Properties
 #********************************************************************
 set.MALLOC_ARENA_MAX=1
-set.LD_LIBRARY_PATH=.:%LD_LIBRARY_PATH%:../library
-set.JAVA_HOME=../jre
+set.WRAPPER_BASE_DIR=%WRAPPER_BIN_DIR%/..
+set.LD_LIBRARY_PATH=.:%LD_LIBRARY_PATH%:%WRAPPER_BASE_DIR%/library
+set.JAVA_HOME=%WRAPPER_BASE_DIR%/jre
 set.CLASSPATH=.:%JAVA_HOME%/lib
-set.APP_HOME=..
-set.APP_TEMP=%APP_HOME%/temp
-set.APP_WORK=%APP_HOME%/work
-set.APP_LOGS=%APP_HOME%/logs
 
 #********************************************************************
 # Wrapper Java Properties
@@ -68,11 +65,11 @@ wrapper.java.mainclass=org.tanukisoftware.wrapper.WrapperSimpleApp
 
 # Java Classpath (include wrapper.jar)  Add class path elements as
 #  needed starting from 1
-wrapper.java.classpath.1=../bin/wrapper-*.jar
-wrapper.java.classpath.2=../lib/*.jar
+wrapper.java.classpath.1=%WRAPPER_BASE_DIR%/bin/wrapper-*.jar
+wrapper.java.classpath.2=%WRAPPER_BASE_DIR%/lib/*.jar
 
 # Java Library Path (location of Wrapper.DLL or libwrapper.so)
-wrapper.java.library.path.1=../library
+wrapper.java.library.path.1=%WRAPPER_BASE_DIR%/library
 wrapper.java.library.path.2=/usr/lib
 wrapper.java.library.path.3=/usr/lib64
 wrapper.java.library.path.4=/usr/local/lib
@@ -82,14 +79,15 @@ wrapper.java.library.path.5=/usr/local/lib64
 wrapper.java.additional.auto_bits=TRUE
 
 # Java Additional Parameters
-wrapper.java.additional.1=-Dapp.home=%APP_HOME%
-wrapper.java.additional.2=-Dapp.logs=%APP_LOGS%
-wrapper.java.additional.3=-Dapp.work=%APP_WORK%
-wrapper.java.additional.4=-Dapp.temp=%APP_TEMP%
-wrapper.java.additional.5=-Djava.io.tmpdir=%APP_TEMP%
+wrapper.java.additional.1=-Dapp.home="%WRAPPER_BASE_DIR%"
+wrapper.java.additional.2=-Dapp.base="%WRAPPER_BASE_DIR%"
+wrapper.java.additional.3=-Dapp.temp="%WRAPPER_BASE_DIR%/temp"
+wrapper.java.additional.4=-Dapp.work="%WRAPPER_BASE_DIR%/work"
+wrapper.java.additional.5=-Dapp.logs="%WRAPPER_BASE_DIR%/logs"
+wrapper.java.additional.6=-Djava.io.tmpdir="%WRAPPER_BASE_DIR%/temp"
 
 # wrapper.java.additional_file
-wrapper.java.additional_file=../conf/wrapper-java-additional.conf
+wrapper.java.additional_file=%WRAPPER_BASE_DIR%/conf/wrapper-java-additional.conf
 
 # Initial Java Heap Size (in MB)
 #wrapper.java.initmemory=3
@@ -113,9 +111,9 @@ wrapper.console.format=LPTM
 wrapper.console.loglevel=INFO
 
 # Log file to use for wrapper output logging.
-wrapper.logfile=%APP_LOGS%/console_ROLLNUM.log
+wrapper.logfile=%WRAPPER_BASE_DIR%/logs/console_ROLLNUM.log
 
-wrapper.logfile.purge.pattern=%APP_LOGS%/console_*.log
+wrapper.logfile.purge.pattern=%WRAPPER_BASE_DIR%/logs/console_*.log
 wrapper.logfile.purge.sort=TIMES
 wrapper.logfile.rollmode=SIZE
 
@@ -164,16 +162,27 @@ wrapper.check.deadlock.output=FULL
 wrapper.filter.trigger.999=wrapper.filter.trigger.*java.lang.OutOfMemoryError
 wrapper.filter.allow_wildcards.999=TRUE
 wrapper.filter.action.999=NONE
-#  Ignore -verbose:class output to avoid false positives.
+# Ignore -verbose:class output to avoid false positives.
 wrapper.filter.trigger.1000=[Loaded java.lang.OutOfMemoryError
 wrapper.filter.action.1000=NONE
-# (Simple match)
-wrapper.filter.trigger.1001=java.lang.OutOfMemoryError
-# (Only match text in stack traces if -XX:+PrintClassHistogram is being used.)
-#wrapper.filter.trigger.1001=Exception in thread "*" java.lang.OutOfMemoryError
-#wrapper.filter.allow_wildcards.1001=TRUE
-wrapper.filter.action.1001=DUMP,RESTART
-wrapper.filter.message.1001=The JVM has run out of memory.
+
+# Ignore java.lang.OutOfMemoryError without wildcards enabled
+wrapper.filter.trigger.1001=Exception in thread "*" java.lang.OutOfMemoryError
+wrapper.filter.action.1001=NONE
+# Only match Exception in thread "*" java.lang.OutOfMemoryError with wildcards enabled
+wrapper.filter.trigger.1002=Exception in thread "*" java.lang.OutOfMemoryError
+wrapper.filter.allow_wildcards.1002=TRUE
+wrapper.filter.action.1002=DUMP,RESTART
+wrapper.filter.message.1002=The JVM has run out of memory.
+
+# Ignore java.lang.StackOverflowError without wildcards enabled
+wrapper.filter.trigger.1003=Exception in thread "*" java.lang.StackOverflowError
+wrapper.filter.action.1003=NONE
+# Only match Exception in thread "*" java.lang.StackOverflowError with wildcards enabled
+wrapper.filter.trigger.1004=Exception in thread "*" java.lang.StackOverflowError
+wrapper.filter.allow_wildcards.1004=TRUE
+wrapper.filter.action.1004=DUMP,RESTART
+wrapper.filter.message.1004=The JVM has run stack over flow.
 
 #********************************************************************
 # Wrapper Email Notifications. (Requires Professional Edition)
