@@ -1,11 +1,11 @@
 # wrapper
 
 #### 项目介绍
-java service wrapper 3.5.35
+java service wrapper 3.5.37
 
 1. support windows x86-32 and x86-64;
 2. support linux x86-32 and x86-64;
-3. include apr-1.6.3, apr-util-1.6.1, crypto-1.0.0, expat-1.6.0, ssl-1.0.0, z-1.2.11, tcnative-1.2.17
+3. include apr-1.6.5, apr-util-1.6.1, crypto-1.0.0, expat-1.6.0, ssl-1.0.0, z-1.2.11, tcnative-1.2.21
 
 #### 编译说明
 
@@ -41,3 +41,5 @@ java service wrapper 3.5.35
 
 1. conf/wrapper-app-property.conf这个文件里设置服务名称
 2. conf/wrapper-java-additional.conf这个文件里设置内存、端口、其他-D参数
+3. #号是注释
+4. 配置文件里不能有中文字符，编辑的时候建议用editplus

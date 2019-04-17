@@ -48,7 +48,7 @@ echo "RUN_AS_USER=${_RUN_AS_USER}"
 
 #-----------------------------------------------------------------------------
 # These settings can be modified to fit the needs of your application
-# Optimized for use with version 3.5.35 of the Wrapper.
+# Optimized for use with version 3.5.37 of the Wrapper.
 
 # IMPORTANT - Please always stop and uninstall an application before making
 #             any changes to this file.  Failure to do so could remove the
@@ -70,7 +70,9 @@ echo "RUN_AS_USER=${_RUN_AS_USER}"
 # Description: ${_APP_DESC}
 ### END INIT INFO
 
-# Application
+# Application name and long name: If these variables are not set (or left to
+#  the default tokens), APP_NAME will default to the name of the script, then
+#  APP_LONG_NAME will default to the value of APP_NAME.
 APP_NAME="${_APP_NAME}"
 APP_LONG_NAME="${_APP_LONG_NAME}"
 
@@ -222,6 +224,65 @@ FILES_TO_SOURCE=
 # Do not modify anything beyond this point
 #-----------------------------------------------------------------------------
 
+checkIsRoot() {
+    if [ `id | sed 's/^uid=//;s/(.*$//'` != "0" ] ; then
+        IS_ROOT=false
+    else
+        IS_ROOT=true
+    fi
+}
+
+gettext() {
+    "$WRAPPER_CMD" --translate "$1" "$WRAPPER_CONF" 2>/dev/null
+    if [ $? != 0 ] ; then 
+        echo "$1"
+    fi
+}
+
+resolveIdLocation() {
+    if [ "X$ID_BIN" = "X" ] ; then
+        # On Solaris, the version in /usr/xpg4/bin should be used.
+        ID_BIN="/usr/xpg4/bin/id"
+        if [ ! -x "$ID_BIN" ] ; then
+            ID_BIN="id"
+            result=`command -v id 2>/dev/null`
+            if [ $? -ne 0 ] ; then
+                ID_BIN="/usr/bin/id"
+                if [ ! -x "$ID_BIN" ] ; then
+                    eval echo `gettext 'Unable to locate "id".'`
+                    eval echo `gettext 'Please report this message along with the location of the command on your system.'`
+                    exit 1
+                fi
+            fi
+        fi
+    fi
+}
+
+resolveCurrentUser() {
+    if [ "X$CURRENT_USER" = "X" ] ; then
+        resolveIdLocation
+        CURRENT_USER=`$ID_BIN -u -n 2>/dev/null`
+    fi
+}
+
+resolvePidofLocation() {
+    if [ "X$PIDOF_BIN" = "X" ] ; then
+        PIDOF_BIN="pidof"
+        result=`command -v pidof 2>/dev/null`
+        if [ $? -ne 0 ] ; then
+            PIDOF_BIN="/bin/pidof"
+            if [ ! -x "$PIDOF_BIN" ] ; then
+                PIDOF_BIN="/usr/sbin/pidof"
+                if [ ! -x "$PIDOF_BIN" ] ; then
+                    eval echo `gettext 'Unable to locate "pidof".'`
+                    eval echo `gettext 'Please report this message along with the location of the command on your system.'`
+                    exit 1
+                fi
+            fi
+        fi
+    fi
+}
+
 # check if we are running under Cygwin terminal.
 # Note: on some OS's (for example Solaris, MacOS), -o is not a valid parameter 
 # and it shows an error message. We redirect stderr to null so the error message
@@ -248,9 +309,6 @@ if [ $# -gt 1 ] ; then
     fi
 fi
 
-# default location for the service file
-SYSTEMD_SERVICE_FILE="/etc/systemd/system/$APP_NAME.service"
-
 # Required for HP-UX Startup
 if [ `uname -s` = "HP-UX" -o `uname -s` = "HP-UX64" ] ; then
         PATH=$PATH:/usr/bin
@@ -263,6 +321,12 @@ case $0 in
         ;;
     *)
         PWD=`pwd`
+        if [ $? -ne 0 ] ; then
+            # On some systems pwd may fail if one of the parent folder has insufficient permissions.
+            #  Is there a way to access the current location which would allow to print the permissions
+            #  for each folder like we do below?
+            exit 1
+        fi
         SCRIPT="$PWD/$0"
         ;;
 esac
@@ -302,8 +366,78 @@ do
     fi
 done
 
+# Try to source a file with the same filename as the script and with the '.shconf' extension.
+case $REALPATH in
+    *.sh)
+        SHCONF_FILE="$REALPATH" | rev | cut -d"." -f2- | rev
+        ;;
+    *)
+        SHCONF_FILE="$REALPATH"
+        ;;
+esac
+
+SHCONF_FILE="$SHCONF_FILE.shconf"
+
+if [ -f "$SHCONF_FILE" ] ; then
+    if [ ! -x "$SHCONF_FILE" ] ; then
+        # We should stop here because the configuration expected in the shconf file will not be loaded.
+        eval echo `gettext 'Found $SHCONF_FILE but could not execute it. Please make sure that the file has execute permissions.'`
+        exit 1
+    fi
+    . "$SHCONF_FILE"
+fi
+
 # Get the location of the script.
 REALDIR=`dirname "$REALPATH"`
+
+if [ "X$RUN_AS_USER" != "X" ] ; then
+    CHECK_FOLDER_PERMISSIONS=0
+    if [ $COMMAND = "console" -o $COMMAND = "start" -o $COMMAND = "restart" -o $COMMAND = "condrestart" -o $COMMAND = "install" -o $COMMAND = "installstart" ] ; then
+        checkIsRoot
+        if [ "$IS_ROOT" = "true" ] ; then
+            if [ -f "/sbin/runuser" -a $COMMAND != "console" ] ; then
+                result=`/sbin/runuser - $RUN_AS_USER -c "cd \"${REALDIR}\"" $SU_OPTS 2>/dev/null`
+            else
+                result=`$SU_BIN - $RUN_AS_USER -c "cd \"${REALDIR}\"" $SU_OPTS 2>/dev/null`
+            fi
+            CHECK_FOLDER_PERMISSIONS=$?
+        fi
+    fi
+else
+    # Technically REALDIR should not be required for all commands, but in fact the script will fail below if the Wrapper binaries can't be accessed.
+    #  It is thus better to show a message and print folder permissions now.
+    result=`cd "${REALDIR}" 2>/dev/null`
+    CHECK_FOLDER_PERMISSIONS=$?
+fi
+if [ $CHECK_FOLDER_PERMISSIONS -ne 0 ] ; then
+    if [ "X$RUN_AS_USER" != "X" ] ; then
+        CHECK_USER=$RUN_AS_USER
+    else
+        resolveCurrentUser
+        CHECK_USER=$CURRENT_USER
+    fi
+    # Unfortunately the following message will not be translated because currently the Wrapper fails to execute correctly when it can't access to the absolute path.
+    eval echo `gettext 'Failed to access the script using an absolute path. Insufficient permissions may prevent the user \"$CHECK_USER\" from traversing one of the folders. Please check the following permissions:'`
+
+    OIFS=$IFS
+    IFS='/'
+    for DIR in $REALDIR
+    do
+        INT_PATH="${INT_PATH}/$DIR"
+        if [ "$DIR" != "." -a "$DIR" != ".." ] ; then
+            ALL_PATHS="${ALL_PATHS} ${INT_PATH}"
+            result=`cd "${INT_PATH}" 2>/dev/null`
+            if [ $? -ne 0 ] ; then
+                # no access to this folder and so to the rest of the path.
+                break
+            fi
+        fi
+    done
+    IFS=$OIFS
+    ls -dal $ALL_PATHS
+    exit 1
+fi
+
 # Normalize the path
 REALDIR=`cd "${REALDIR}"; pwd`
 
@@ -326,6 +460,18 @@ if [ "$FIRST_CHAR" != "/" ]
 then
     WRAPPER_CONF=$REALDIR/$WRAPPER_CONF
 fi
+
+# Give default values to $APP_NAME and $APP_LONG_NAME
+DELIMITER="@"
+if [ "X$APP_NAME" = "X" -o "$APP_NAME" = "${DELIMITER}app.name${DELIMITER}" ] ; then
+    APP_NAME=`basename -- "$0"`
+fi
+if [ "X$APP_LONG_NAME" = "X" -o "$APP_LONG_NAME" = "${DELIMITER}app.long.name${DELIMITER}" ] ; then
+    APP_LONG_NAME=$APP_NAME
+fi
+
+# default location for the service file
+SYSTEMD_SERVICE_FILE="/etc/systemd/system/$APP_NAME.service"
 
 # Process ID
 ANCHORFILE="$PIDDIR/$APP_NAME.anchor"
@@ -396,43 +542,6 @@ case "$DIST_OS" in
         DIST_OS="zos"
         ;;
 esac
-
-resolveIdLocation() {
-    if [ "X$ID_BIN" = "X" ] ; then
-        # On Solaris, the version in /usr/xpg4/bin should be used.
-        ID_BIN="/usr/xpg4/bin/id"
-        if [ ! -x "$ID_BIN" ] ; then
-            ID_BIN="id"
-            result=`command -v id 2>/dev/null`
-            if [ $? -ne 0 ] ; then
-                ID_BIN="/usr/bin/id"
-                if [ ! -x "$ID_BIN" ] ; then
-                    eval echo `gettext 'Unable to locate "id".'`
-                    eval echo `gettext 'Please report this message along with the location of the command on your system.'`
-                    exit 1
-                fi
-            fi
-        fi
-    fi
-}
-
-resolvePidofLocation() {
-    if [ "X$PIDOF_BIN" = "X" ] ; then
-        PIDOF_BIN="pidof"
-        result=`command -v pidof 2>/dev/null`
-        if [ $? -ne 0 ] ; then
-            PIDOF_BIN="/bin/pidof"
-            if [ ! -x "$PIDOF_BIN" ] ; then
-                PIDOF_BIN="/usr/sbin/pidof"
-                if [ ! -x "$PIDOF_BIN" ] ; then
-                    eval echo `gettext 'Unable to locate "pidof".'`
-                    eval echo `gettext 'Please report this message along with the location of the command on your system.'`
-                    exit 1
-                fi
-            fi
-        fi
-    fi
-}
 
 # Compare Versions $1<$2=0, $1==$2=1, $1>$2=2
 compareVersions () {
@@ -621,14 +730,6 @@ else
     ECHOOPTC="\c"
 fi
 
-
-gettext() {
-    "$WRAPPER_CMD" --translate "$1" "$WRAPPER_CONF" 2>/dev/null
-    if [ $? != 0 ] ; then 
-        echo "$1"
-    fi
-}
-
 outputFile() {
     if [ -f "$1" ]
     then
@@ -660,7 +761,24 @@ detectWrapperBinary() {
 #  and look for the 32-bit binary.  If that doesn't exist either then
 #  look for the default.
 WRAPPER_TEST_CMD=""
-detectWrapperBinary "$WRAPPER_CMD-$DIST_OS-$DIST_ARCH-$DIST_BITS"
+
+BIN_BITS=$DIST_BITS
+if [ ! "$BIN_BITS" = "32" ] ; then
+    # On a 64-bit platform, both Wrapper 32-Bit and 64-Bit can be used.
+    #  Send a request to the Wrapper to know if the license has the 64-bit feature.
+    WRAPPER_CMD_ORIG=$WRAPPER_CMD
+    detectWrapperBinary "$WRAPPER_CMD-$DIST_OS-$DIST_ARCH-$BIN_BITS"
+    if [ ! -z "$WRAPPER_TEST_CMD" ] ; then
+        "$WRAPPER_CMD" --request_delta_binary_bits "$WRAPPER_CONF" 2>/dev/null
+        if [ $? = 32 ] ; then
+            # License is 32-Bit. Reset and search for 32-Bit Wrapper binaries.
+            WRAPPER_TEST_CMD=""
+            WRAPPER_CMD=$WRAPPER_CMD_ORIG
+            BIN_BITS=32
+        fi
+    fi
+fi
+
 if [ -z "$WRAPPER_TEST_CMD" ] ; then
     detectWrapperBinary "$WRAPPER_CMD-$DIST_OS-$DIST_ARCH-32"
 fi
@@ -671,8 +789,8 @@ fi
 
 if [ -z "$WRAPPER_TEST_CMD" ] ; then
     eval echo `gettext 'Unable to locate any of the following binaries:'`
-    outputFile "$WRAPPER_CMD-$DIST_OS-$DIST_ARCH-$DIST_BITS"
-    if [ ! "$DIST_BITS" = "32" ] ; then
+    outputFile "$WRAPPER_CMD-$DIST_OS-$DIST_ARCH-$BIN_BITS"
+    if [ ! "$BIN_BITS" = "32" ] ; then
         outputFile "$WRAPPER_CMD-$DIST_OS-$DIST_ARCH-32"
     fi
     outputFile "$WRAPPER_CMD"
@@ -798,6 +916,64 @@ prepAdditionalParams() {
     fi
 }
 
+resolveSysLocale() {
+    # First try to get the system encoding from /etc/default/locale.
+    # Note: For some reason, the system encoding stored in /etc/default/locale and the value returned by localectl may differ.
+    #       When using 'localectl set-local', /etc/default/locale is always updated accordingly, but when manually editing /etc/default/locale,
+    #       the output of the command sometimes doesn't get updated. When the values differ, SU uses the same locale as /etc/default/locale,
+    #       so that's why we start trying to get the locale using this method.
+    if [ -f "/etc/default/locale" ] ; then
+        PASS_SYS_LANG=`grep 'LANG=' /etc/default/locale`
+        case "$PASS_SYS_LANG" in
+            LANG=*)
+                PASS_SYS_LANG="$PASS_SYS_LANG "
+                ;;
+            *)
+                PASS_SYS_LANG=""
+                ;;
+        esac
+    fi
+    if [ "X$PASS_SYS_LANG" = "X" ] ; then
+        # Try to get the system encoding using localectl.
+        LOCALECTL_BIN="localectl"
+        result=`command -v $LOCALECTL_BIN 2>/dev/null`
+        if [ $? -ne 0 ] ; then
+            LOCALECTL_BIN="/usr/bin/localectl"
+            if [ ! -x "$LOCALECTL_BIN" ] ; then
+                # Keep the warning for debugging, but don't actually show it because it may be normal for some OS to not have the command. 
+                # echo " WARNING: Could not locate localectl used to get the system locale. The encoding may not be correct when running as $RUN_AS_USER."
+                LOCALECTL_BIN=""
+            fi
+        fi
+        if [ "X$LOCALECTL_BIN" != "X" ] ; then
+            # The first line that localectl outputs should look like this: '    System Locale: n/a'
+            PASS_SYS_LANG=`$LOCALECTL_BIN | grep "System Locale" | awk '{print $3}' 2>/dev/null`
+            case "$PASS_SYS_LANG" in
+                *n/a*)
+                    # No system locale set. Skip.
+                    PASS_SYS_LANG=""
+                    ;;
+                LANG=*)
+                    PASS_SYS_LANG="$PASS_SYS_LANG "
+                    ;;
+                *)
+                    # echo " WARNING: Failed to parse the output of localectl. The encoding may not be correct when running as $RUN_AS_USER.'"
+                    PASS_SYS_LANG=""
+                    ;;
+            esac
+        fi
+    fi
+}
+
+resolveSuLocale() {
+    if [ "X$PASS_SU_LANG" = "X" -a "X$RUN_AS_USER" != "X" ] ; then
+        PASS_SU_LANG=`$SU_BIN - $RUN_AS_USER -c "locale" $SU_OPTS | grep "LANG=" 2>/dev/null`
+        if [ "X$PASS_SU_LANG" != "X" ] ; then
+            PASS_SU_LANG="$PASS_SU_LANG "
+        fi
+    fi
+}
+
 checkUser() {
     # $1 touchLock flag
     # $2.. [command] args
@@ -805,8 +981,8 @@ checkUser() {
     # Check the configured user.  If necessary rerun this script as the desired user.
     if [ "X$RUN_AS_USER" != "X" ]
     then
-        resolveIdLocation
-        if [ "`$ID_BIN -u -n`" = "$RUN_AS_USER" ]
+        resolveCurrentUser
+        if [ "$CURRENT_USER" = "$RUN_AS_USER" ]
         then
             # Already running as the configured user.  Avoid password prompts by not calling su.
             RUN_AS_USER=""
@@ -857,10 +1033,24 @@ checkUser() {
 
         # runuser doesn't transmit signals (such as ctrl+c) to the Wrapper. This causes problem when running as a console.
         # When the Wrapper is launched as a service on RedHat, runuser should be used in preference to su.
+        resolveSysLocale
         if [ -f "/sbin/runuser" -a $COMMAND != "console" ] ; then
-            /sbin/runuser - $RUN_AS_USER -c "\"$REALPATH\" $ADDITIONAL_PARA" $SU_OPTS
+            # Unlike su, runuser doesn't use the default system locale. Force passing it for consistency.
+            if [ "X$PASS_SYS_LANG" = "X" ] ; then
+                # Fallback to the same locale as when using SU (which should be the system encoding).
+                resolveSuLocale
+                PASS_SYS_LANG=$PASS_SU_LANG
+            fi
+            /sbin/runuser - $RUN_AS_USER -c "$PASS_SYS_LANG\"$REALPATH\" $ADDITIONAL_PARA" $SU_OPTS
         else
-            $SU_BIN - $RUN_AS_USER -c "\"$REALPATH\" $ADDITIONAL_PARA" $SU_OPTS
+            # Normally SU should use the default system locale, but make sure it is the case.
+            resolveSuLocale
+            if [ "X$PASS_SU_LANG" != "X" -a "$PASS_SU_LANG" != "$PASS_SYS_LANG" ] ; then
+                PASS_SU_LANG=$PASS_SYS_LANG
+            else
+                PASS_SU_LANG=""
+            fi
+            $SU_BIN - $RUN_AS_USER -c "$PASS_SU_LANG\"$REALPATH\" $ADDITIONAL_PARA" $SU_OPTS
         fi
         RUN_AS_USER_EXITCODE=$?
         
@@ -1111,7 +1301,7 @@ launchinternal() {
         prepAdditionalParams "$@"
 
         # The string passed to eval must handles spaces in paths correctly.
-        COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" wrapper.daemonize=TRUE $APPNAMEPROP $ANCHORPROP $IGNOREPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.35 $ADDITIONAL_PARA"
+        COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" wrapper.daemonize=TRUE $APPNAMEPROP $ANCHORPROP $IGNOREPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.37 $ADDITIONAL_PARA"
         eval $COMMAND_LINE
     else
         eval echo `gettext '$APP_LONG_NAME is already running.'`
@@ -1134,7 +1324,7 @@ console() {
         prepAdditionalParams "$@"
 
         # The string passed to eval must handles spaces in paths correctly.
-        COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" $APPNAMEPROP $ANCHORPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.35 $ADDITIONAL_PARA"
+        COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" $APPNAMEPROP $ANCHORPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.37 $ADDITIONAL_PARA"
         eval $COMMAND_LINE
         COMMAND_EXIT_CODE=$?
         if [ $COMMAND_EXIT_CODE -ne 0 ] ; then
@@ -1204,11 +1394,11 @@ startwait() {
 }
 
 mustBeRootOrExit() {
-    if [ `id | sed 's/^uid=//;s/(.*$//'` != "0" ] ; then
+    checkIsRoot
+    if [ "$IS_ROOT" != "true" ] ; then
         eval echo `gettext 'Must be root to perform this action.'`
         exit 1
     fi
-    IS_ROOT=true
 }
 
 mustBeStoppedOrExit() {
@@ -1219,6 +1409,8 @@ mustBeStoppedOrExit() {
     fi
 }
 
+# Detect if the Wrapper is running
+# Returns 0 if the process is running, otherwise returns 1.
 checkRunning() {
     getpid
     if [ "X$pid" = "X" ] ; then
@@ -1226,7 +1418,9 @@ checkRunning() {
         if [ "X$1" = "X1" ] ; then
             exit 1
         fi
+        return 1
     fi
+    return 0
 }
 
 
@@ -1386,6 +1580,12 @@ upstartRestart() {
     fi
 }
 
+upstartRemove() {
+    stopit "0"
+    eval echo `gettext ' Removing $APP_LONG_NAME daemon from upstart...'`
+    rm "/etc/init/${APP_NAME}.conf"
+}
+
 # Method to check if systemd is running.
 # Returns 0 if systemd is found, otherwise returns 1.
 systemdDetection() {
@@ -1418,8 +1618,17 @@ systemdInstall() {
         echo ""                                 >> "${SYSTEMD_SERVICE_FILE}"
         echo "[Service]"                        >> "${SYSTEMD_SERVICE_FILE}"
         echo "Type=forking"                     >> "${SYSTEMD_SERVICE_FILE}"
-        echo "ExecStart=${REALPATH} start sysd" >> "${SYSTEMD_SERVICE_FILE}"
-        echo "ExecStop=${REALPATH} stop sysd"   >> "${SYSTEMD_SERVICE_FILE}"
+        case "${REALPATH}" in
+            *\ *)
+                # REALPATH contains space
+                echo 'ExecStart=/usr/bin/env "'${REALPATH}'" start sysd' >> "${SYSTEMD_SERVICE_FILE}"
+                echo 'ExecStop=/usr/bin/env "'${REALPATH}'" stop sysd'   >> "${SYSTEMD_SERVICE_FILE}"
+                ;;
+            *)
+                echo "ExecStart=${REALPATH} start sysd" >> "${SYSTEMD_SERVICE_FILE}"
+                echo "ExecStop=${REALPATH} stop sysd"   >> "${SYSTEMD_SERVICE_FILE}"
+                ;;
+        esac
         if [ "X${RUN_AS_USER}" != "X" ] ; then
           echo "User=${RUN_AS_USER}"            >> "${SYSTEMD_SERVICE_FILE}"
         fi
@@ -1579,7 +1788,7 @@ start() {
     prepAdditionalParams "$@"
 
     # The string passed to eval must handles spaces in paths correctly.
-    COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" wrapper.daemonize=TRUE $APPNAMEPROP $ANCHORPROP $IGNOREPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.35 $ADDITIONAL_PARA"
+    COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" wrapper.daemonize=TRUE $APPNAMEPROP $ANCHORPROP $IGNOREPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.37 $ADDITIONAL_PARA"
     eval $COMMAND_LINE
     
     startwait
@@ -1587,16 +1796,8 @@ start() {
  
 stopit() {
     # $1 exit if down flag
-    
-    getpid
-    if [ "X$pid" = "X" ]
-    then
-        eval echo `gettext '$APP_LONG_NAME is not running.'`
-        if [ "X$1" = "X1" ]
-        then
-            exit 1
-        fi
-    else
+    checkRunning $1
+    if [ $? -eq 0 ] ; then
         # The daemon should be running.
         eval echo `gettext 'Stopping $APP_LONG_NAME...'`
 
@@ -2185,9 +2386,7 @@ removedaemon() {
             elif [ $installedStatus -eq 2 ] ; then
                 systemdRemove
             elif [ $installedStatus -eq 3 ] ; then
-                stopit "0"
-                eval echo `gettext ' Removing $APP_LONG_NAME daemon from upstart...'`
-                rm "/etc/init/${APP_NAME}.conf"
+                upstartRemove
             else
                 eval echo `gettext ' The $APP_LONG_NAME daemon is not currently installed.'`
                 exit 1
@@ -2215,9 +2414,7 @@ removedaemon() {
             elif [ $installedStatus -eq 2 ] ; then
                 systemdRemove
             elif [ $installedStatus -eq 3 ] ; then
-                stopit "0"
-                eval echo `gettext ' Removing $APP_LONG_NAME daemon from upstart...'`
-                rm "/etc/init/${APP_NAME}.conf"
+                upstartRemove
             else
                 eval echo `gettext ' The $APP_LONG_NAME daemon is not currently installed.'`
                 exit 1

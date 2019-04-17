@@ -15,7 +15,7 @@
 #-Xnoagent
 #-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=10087
 #-Djava.compiler=NONE
--Djava.security.egd=file:/dev/./urandom
+-Djava.security.egd=file:/dev/urandom
 -Dfile.encoding=UTF-8
 -Dsun.jnu.encoding=UTF-8
 -Dsun.stdout.encoding=UTF-8
@@ -31,5 +31,4 @@
 #-Drmi.registry.port.platform=10001
 #-Drmi.server.port.platform=10002
 -Dhttp.listen.port=8080
--Dajp.listen.port=-1
 -Dshutdown.port=-1

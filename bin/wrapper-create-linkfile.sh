@@ -59,12 +59,12 @@ cd ${base_dir}
 # file array
 #
 file_array=(
-libapr-1.so.0.6.3:libapr-1.so,libapr-1.so.0,libapr-1.so.0.6
+libapr-1.so.0.6.5:libapr-1.so,libapr-1.so.0,libapr-1.so.0.6
 libaprutil-1.so.0.6.1:libaprutil-1.so,libaprutil-1.so.0,libaprutil-1.so.0.6
 libcrypto.so.1.0.0:libcrypto.so,libcrypto.so.1,libcrypto.so.1.0
 libexpat.so.1.6.0:libexpat.so,libexpat.so.1,libexpat.so.1.6
 libssl.so.1.0.0:libssl.so,libssl.so.1,libssl.so.1.0
-libtcnative-1.so.0.2.17:libtcnative-1.so,libtcnative-1.so.0,libtcnative-1.so.0.2
+libtcnative-1.so.0.2.21:libtcnative-1.so,libtcnative-1.so.0,libtcnative-1.so.0.2
 libz.so.1.2.11:libz.so,libz.so.1,libz.so.1.2
 )
 
