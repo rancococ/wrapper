@@ -1,8 +1,6 @@
 #! /bin/sh
 
 # app info
-_WRAPPER_BASE="wrapper"
-
 _APP_NAME="myapp"
 _APP_LONG_NAME="myapp"
 _APP_DESC="myapp"
@@ -23,7 +21,7 @@ base_dir="$( cd -P "$( dirname "$source" )" && pwd )"
 cd ${base_dir}
 # read property
 if [ -x "${base_dir}/wrapper-read-property.sh" ]; then
-  . "${base_dir}/wrapper-read-property.sh" "${base_dir}/../conf/wrapper-app-property.conf"
+  . "${base_dir}/wrapper-read-property.sh"
 fi
 # print property
 echo "APP_NAME=${_APP_NAME}"
@@ -81,6 +79,7 @@ APP_LONG_NAME="${_APP_LONG_NAME}"
 #APP_NAME_PASS_TO_WRAPPER=false
 
 # Wrapper
+_WRAPPER_BASE="wrapper"
 WRAPPER_CMD="./${_WRAPPER_BASE}"
 WRAPPER_CONF="../conf/${_WRAPPER_BASE}.conf"
 

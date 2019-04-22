@@ -1,5 +1,26 @@
 @echo off
-setlocal
+
+setlocal EnableDelayedExpansion
+setlocal EnableExtensions
+
+rem app info
+set "APP_NAME=myapp"
+set "APP_LONG_NAME=myapp"
+set "APP_DESC=myapp"
+set "RUN_AS_USER="
+
+rem #######################################################################################
+rem get custom value for APP_NAME/APP_LONG_NAME/APP_DESC/RUN_AS_USER
+rem entry base dir
+cd /d %~dp0
+rem read property
+call "%CD%/wrapper-read-property.bat"
+rem print property
+echo APP_NAME=%APP_NAME%
+echo APP_LONG_NAME=%APP_LONG_NAME%
+echo APP_DESC=%APP_DESC%
+echo RUN_AS_USER=%RUN_AS_USER%
+rem #######################################################################################
 
 rem
 rem Copyright (c) 1999, 2018 Tanuki Software, Ltd.

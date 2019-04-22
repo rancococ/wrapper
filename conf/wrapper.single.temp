@@ -20,7 +20,7 @@
 #  directly in this configuration file.
 #include ../conf/wrapper-license.conf
 #include ../conf/wrapper-license-%WRAPPER_HOST_NAME%.conf
-#include ../conf/wrapper-app-property.conf
+#include ../conf/wrapper-property.conf
 
 # The following property will output information about which License Key(s)
 #  are being found, and can aid in resolving any licensing problems.
@@ -87,7 +87,7 @@ wrapper.java.additional.5=-Dapp.logs=%WRAPPER_BASE_DIR%/logs
 wrapper.java.additional.6=-Djava.io.tmpdir=%WRAPPER_BASE_DIR%/temp
 
 # wrapper.java.additional_file
-wrapper.java.additional_file=%WRAPPER_BASE_DIR%/conf/wrapper-java-additional.conf
+wrapper.java.additional_file=%WRAPPER_BASE_DIR%/conf/wrapper-additional.conf
 
 # Initial Java Heap Size (in MB)
 #wrapper.java.initmemory=3
