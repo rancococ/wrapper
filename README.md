@@ -39,7 +39,7 @@ java service wrapper 3.5.37
 
 #### 配置说明：
 
-1. conf/wrapper-app-property.conf这个文件里设置服务名称
-2. conf/wrapper-java-additional.conf这个文件里设置内存、端口、其他-D参数
+1. conf/wrapper-property.conf这个文件里设置服务名称
+2. conf/wrapper-additional.conf这个文件里设置内存、端口、其他-D参数
 3. #号是注释
 4. 配置文件里不能有中文字符，编辑的时候建议用editplus
