@@ -10,7 +10,7 @@ while [ -h "$source" ]; do
     [[ $source != /* ]] && source="$base_dir/$source"
 done
 base_dir="$( cd -P "$( dirname "$source" )" && pwd )"
-cd ${base_dir}
+cd "${base_dir}"
 
 conf_dir=${base_dir}/../conf
 
@@ -39,4 +39,4 @@ do
     value=$(echo ${tmp2#*=} | sed 's/^[ ]*//g' | sed 's/[ ]*$//g')
     # echo -${key}=${value}-
     eval "${key}=${value}"
-done < ${conf_dir}/wrapper-property.conf
+done < "${conf_dir}/wrapper-property.conf"

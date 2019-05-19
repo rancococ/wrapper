@@ -79,13 +79,15 @@ wrapper.java.library.path.5=/usr/local/lib64
 wrapper.java.additional.auto_bits=TRUE
 
 # Java Additional Parameters
-wrapper.java.additional.1=-Dcatalina.home=%WRAPPER_BASE_DIR%
-wrapper.java.additional.2=-Dcatalina.base=%WRAPPER_BASE_DIR%
-wrapper.java.additional.3=-Djava.io.tmpdir=%WRAPPER_BASE_DIR%/temp
+wrapper.java.additional.default.stripquotes=TRUE
+wrapper.java.additional.1=-Dcatalina.home="%WRAPPER_BASE_DIR%"
+wrapper.java.additional.2=-Dcatalina.base="%WRAPPER_BASE_DIR%"
+wrapper.java.additional.3=-Djava.io.tmpdir="%WRAPPER_BASE_DIR%/temp"
 wrapper.java.additional.4=-Djdk.tls.ephemeralDHKeySize=2048
 wrapper.java.additional.5=-Djava.protocol.handler.pkgs=org.apache.catalina.webresources
 
 # wrapper.java.additional_file
+wrapper.java.additional_file.stripquotes=TRUE
 wrapper.java.additional_file=%WRAPPER_BASE_DIR%/conf/wrapper-additional.conf
 
 # Initial Java Heap Size (in MB)
@@ -95,6 +97,7 @@ wrapper.java.additional_file=%WRAPPER_BASE_DIR%/conf/wrapper-additional.conf
 #wrapper.java.maxmemory=64
 
 # Application parameters.  Add parameters as needed starting from 1
+wrapper.app.parameter.default.stripquotes=TRUE
 wrapper.app.parameter.1=org.apache.catalina.startup.Bootstrap
 wrapper.app.parameter.2=1
 wrapper.app.parameter.3=start
@@ -102,6 +105,9 @@ wrapper.app.parameter.4=org.apache.catalina.startup.Bootstrap
 wrapper.app.parameter.5=TRUE
 wrapper.app.parameter.6=1
 wrapper.app.parameter.7=stop
+
+# wrapper.app.parameter_file
+wrapper.app.parameter_file.stripquotes=TRUE
 
 #********************************************************************
 # Wrapper Logging Properties

@@ -18,7 +18,7 @@ while [ -h "$source" ]; do
     [[ $source != /* ]] && source="$base_dir/$source"
 done
 base_dir="$( cd -P "$( dirname "$source" )" && pwd )"
-cd ${base_dir}
+cd "${base_dir}"
 # read property
 if [ -x "${base_dir}/wrapper-read-property.sh" ]; then
   . "${base_dir}/wrapper-read-property.sh"

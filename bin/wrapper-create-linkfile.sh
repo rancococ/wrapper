@@ -53,7 +53,7 @@ while [ -h "$source" ]; do
     [[ $source != /* ]] && source="$base_dir/$source"
 done
 base_dir="$( cd -P "$( dirname "$source" )" && pwd )"
-cd ${base_dir}
+cd "${base_dir}"
 
 #
 # file array
@@ -92,12 +92,12 @@ fun_create_link_file() {
 }
 
 # entry library
-cd ${base_dir}/../library/
+cd "${base_dir}/../library/"
 
 # create link file
 fun_create_link_file
 
-cd ${BASE_DIR}
+cd "${BASE_DIR}"
 
 success "create link file complete."
 
