@@ -25,7 +25,7 @@ java service wrapper 3.5.39
    4. `cp ./conf/wrapper-additional.tomcat.temp ./conf/wrapper-additional.conf`
    5. `rm -rf ./conf/*.temp`
 
-## 安装教程
+## 安装说明
 
 ### install for windows:
 
