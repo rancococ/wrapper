@@ -3,25 +3,27 @@
 ## 项目介绍
 
 java service wrapper 3.5.39
->  - support windows x86-32 and x86-64
->  - support linux x86-32 and x86-64
->  - include apr-1.6.5, apr-util-1.6.1, crypto-1.0.0, expat-1.6.0, ssl-1.0.0, z-1.2.11, tcnative-1.2.21
+   >  - support windows x86-32 and x86-64
+   >  - support linux x86-32 and x86-64
+   >  - include apr-1.6.5, apr-util-1.6.1, crypto-1.0.0, expat-1.6.0, ssl-1.0.0, z-1.2.11, tcnative-1.2.21
 
 ## 编译说明
 
 ### build for wrapper-single:
-   `cd ./wrapper`
-   `cp ./conf/wrapper.single.temp ./conf/wrapper.conf`
-   `cp ./conf/wrapper-property.single.temp ./conf/wrapper-property.conf`
-   `cp ./conf/wrapper-additional.single.temp ./conf/wrapper-additional.conf`
-   `rm -rf ./conf/*.temp`
+
+   1. `cd ./wrapper`
+   2. `cp ./conf/wrapper.single.temp ./conf/wrapper.conf`
+   3. `cp ./conf/wrapper-property.single.temp ./conf/wrapper-property.conf`
+   4. `cp ./conf/wrapper-additional.single.temp ./conf/wrapper-additional.conf`
+   5. `rm -rf ./conf/*.temp`
 
 ### build for wrapper-tomcat:
-   `cd ./wrapper`
-   `cp ./conf/wrapper.tomcat.temp ./conf/wrapper.conf`
-   `cp ./conf/wrapper-property.tomcat.temp ./conf/wrapper-property.conf`
-   `cp ./conf/wrapper-additional.tomcat.temp ./conf/wrapper-additional.conf`
-   `rm -rf ./conf/*.temp`
+
+   1. `cd ./wrapper`
+   2. `cp ./conf/wrapper.tomcat.temp ./conf/wrapper.conf`
+   3. `cp ./conf/wrapper-property.tomcat.temp ./conf/wrapper-property.conf`
+   4. `cp ./conf/wrapper-additional.tomcat.temp ./conf/wrapper-additional.conf`
+   5. `rm -rf ./conf/*.temp`
 
 ## 安装教程
 
@@ -47,7 +49,8 @@ java service wrapper 3.5.39
 
 ## 配置说明：
 
-- conf/wrapper-property.conf这个文件里设置服务名称
-- conf/wrapper-additional.conf这个文件里设置内存、端口、其他-D参数
-- \#号是注释
-- 配置文件里不能有中文字符，编辑的时候建议用notepad++
+   - conf/wrapper-property.conf这个文件里设置服务名称
+   - conf/wrapper-additional.conf这个文件里设置内存、端口、其他-D参数
+   - \#号是注释
+   - 配置文件里不能有中文字符，编辑的时候建议用notepad++
+
