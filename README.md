@@ -1,7 +1,7 @@
 # wrapper
 
 #### 项目介绍
-java service wrapper 3.5.37
+java service wrapper 3.5.39
 
 1. support windows x86-32 and x86-64;
 2. support linux x86-32 and x86-64;

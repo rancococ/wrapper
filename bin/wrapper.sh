@@ -31,7 +31,7 @@ echo "RUN_AS_USER=${_RUN_AS_USER}"
 #######################################################################################
 
 #
-# Copyright (c) 1999, 2018 Tanuki Software, Ltd.
+# Copyright (c) 1999, 2019 Tanuki Software, Ltd.
 # http://www.tanukisoftware.com
 # All rights reserved.
 #
@@ -46,11 +46,19 @@ echo "RUN_AS_USER=${_RUN_AS_USER}"
 
 #-----------------------------------------------------------------------------
 # These settings can be modified to fit the needs of your application
-# Optimized for use with version 3.5.37 of the Wrapper.
+# Optimized for use with version 3.5.39 of the Wrapper.
 
 # IMPORTANT - Please always stop and uninstall an application before making
 #             any changes to this file.  Failure to do so could remove the
 #             script's ability to control the application.
+
+# NOTE - After loading the variables below, the script will attempt to locate a
+#  file with the same basename as this script and having a '.shconf' extension.
+#  If such file exists, it will be executed giving the user a chance to
+#  override the default settings. Having the customized configuration in a
+#  separate '.shconf' file makes it easier to upgrade the Wrapper, as the
+#  present script file can then be replaced with minimal changes (although at
+#  least the 'INIT INFO' below needs to be updated).
 
 # Initialization block for the install_initd and remove_initd scripts used by
 #  SUSE linux, CentOS and RHEL distributions.
@@ -101,12 +109,21 @@ PIDFILE_CHECK_PID=true
 #  By default the command will be expected to be the first parameter.
 #FIXED_COMMAND=console
 
-# PASS_THROUGH tells the script to pass all arguments through to the JVM
-#  as is.  If PASS_THROUGH is set to true and FIXED_COMMAND is specified
-#  then all arguments will be passed. If PASS_THROUGH is set to true but
-#  FIXED_COMMAND is not specified then all arguments starting with the
-#  second will be passed.
-#PASS_THROUGH=true
+# PASS_THROUGH controls how the script arguments should be passed to the
+#  Wrapper. Possible values are:
+#  - commented or 'false': the arguments will be ignored (not passed).
+#  - 'app_args' or 'true': the arguments will be passed through the Wrapper as
+#                          arguments for the Java Application.
+#  - 'both': both Wrapper properties and Application arguments can be passed to
+#            the Wrapper. The Wrapper properties come in first position. The
+#            user can optionally add a '--' separator followed by application
+#            arguments.
+# NOTE - If FIXED_COMMAND is set to true the above applies to all arguments,
+#        otherwise it applies to arguments starting with the second.
+# NOTE - Passing arguments is only valid with the following commands:
+#          - 'console'
+#          - 'start', 'restart', 'condrestart' (if not installed as a daemon)
+#PASS_THROUGH=app_args
 
 # If uncommented, causes the Wrapper to be shutdown using an anchor file.
 #  When launched with the 'start' command, it will also ignore all INT and
@@ -293,13 +310,6 @@ then
   exit 1
 fi
 
-if [ -n "$FIXED_COMMAND" ]
-then
-    COMMAND="$FIXED_COMMAND"
-else
-    COMMAND="$1"
-fi
-
 # check if there is a parameter "sysd"
 SYSD=
 if [ $# -gt 1 ] ; then
@@ -310,7 +320,7 @@ fi
 
 # Required for HP-UX Startup
 if [ `uname -s` = "HP-UX" -o `uname -s` = "HP-UX64" ] ; then
-        PATH=$PATH:/usr/bin
+    PATH=$PATH:/usr/bin
 fi
 
 # Get the fully qualified path to the script
@@ -368,14 +378,14 @@ done
 # Try to source a file with the same filename as the script and with the '.shconf' extension.
 case $REALPATH in
     *.sh)
-        SHCONF_FILE="$REALPATH" | rev | cut -d"." -f2- | rev
+        SHCONF_FILE=`echo $REALPATH | rev | cut -d "." -f2- | rev`
         ;;
     *)
         SHCONF_FILE="$REALPATH"
         ;;
 esac
 
-SHCONF_FILE="$SHCONF_FILE.shconf"
+SHCONF_FILE="${SHCONF_FILE}.shconf"
 
 if [ -f "$SHCONF_FILE" ] ; then
     if [ ! -x "$SHCONF_FILE" ] ; then
@@ -384,6 +394,20 @@ if [ -f "$SHCONF_FILE" ] ; then
         exit 1
     fi
     . "$SHCONF_FILE"
+fi
+
+if [ -n "$FIXED_COMMAND" ] ; then
+    COMMAND="$FIXED_COMMAND"
+    FIRST_ARG=$1
+else
+    COMMAND="$1"
+    FIRST_ARG=$2
+fi
+
+if [ "X${PASS_THROUGH}" = "Xtrue" -o "X${PASS_THROUGH}" = "Xapp_args" ] ; then
+    PASS_THROUGH=app_args
+elif [ "X${PASS_THROUGH}" != "Xboth" ] ; then
+    PASS_THROUGH=false
 fi
 
 # Get the location of the script.
@@ -481,15 +505,6 @@ PIDFILE="$PIDDIR/$APP_NAME.pid"
 LOCKDIR="/var/lock/subsys"
 LOCKFILE="$LOCKDIR/$APP_NAME"
 pid=""
-
-# Install status
-installedStatus=0 # 0: not installed
-                  # 1: installed (default)
-                  # 2: installed with systemd
-                  # 3: installed with upstart
-                  # 4: installed with SRC
-                  # 5: incomplete installation with SRC (lssrc or lsitab failed to return a record)
-installedWith=""
 
 # Resolve the location of the 'ps' command
 PS_BIN="/usr/ucb/ps"
@@ -694,12 +709,26 @@ else
                 DIST_BITS="32"
             fi
             ;;
+        aarch64* | arm64*)
+            # 'aarch64_be', 'aarch64', 'arm64', etc.
+            # => only armhf is 64-bit
+            DIST_ARCH="armhf"
+            DIST_BITS="64"
+            ;;
         armv*)
-            if [ -z "`readelf -A /proc/self/exe | grep Tag_ABI_VFP_args`" ] ; then 
-                DIST_ARCH="armel"
-                DIST_BITS="32"
-            else 
+            # 'armv8b', 'armv8l', 'armv7l', 'armv5tel', etc.
+            # => armv8 and above should be 64-bit, but it is more reliable to check the bits with getconf.
+            if [ `getconf LONG_BIT` -eq 64 ]; then
                 DIST_ARCH="armhf"
+                DIST_BITS="64"
+            else
+                # Note: The following command returns nothing on SUSE for Raspberry Pi 3 (aarch64).
+                #       An alternative command would be 'dpkg --print-architecture', but dpkg may not exist.
+                if [ -z "`readelf -A /proc/self/exe | grep Tag_ABI_VFP_args`" ] ; then 
+                    DIST_ARCH="armel"
+                else 
+                    DIST_ARCH="armhf"
+                fi
                 DIST_BITS="32"
             fi
             ;;
@@ -768,12 +797,14 @@ if [ ! "$BIN_BITS" = "32" ] ; then
     WRAPPER_CMD_ORIG=$WRAPPER_CMD
     detectWrapperBinary "$WRAPPER_CMD-$DIST_OS-$DIST_ARCH-$BIN_BITS"
     if [ ! -z "$WRAPPER_TEST_CMD" ] ; then
-        "$WRAPPER_CMD" --request_delta_binary_bits "$WRAPPER_CONF" 2>/dev/null
-        if [ $? = 32 ] ; then
-            # License is 32-Bit. Reset and search for 32-Bit Wrapper binaries.
-            WRAPPER_TEST_CMD=""
-            WRAPPER_CMD=$WRAPPER_CMD_ORIG
-            BIN_BITS=32
+        if [ $COMMAND = "console" -o $COMMAND = "start" -o $COMMAND = "restart" -o $COMMAND = "condrestart" -o $COMMAND = "installstart" ] ; then
+            "$WRAPPER_CMD" --request_delta_binary_bits "$WRAPPER_CONF" 2>/dev/null
+            if [ $? = 32 ] ; then
+                # License is 32-Bit. Reset and search for 32-Bit Wrapper binaries.
+                WRAPPER_TEST_CMD=""
+                WRAPPER_CMD=$WRAPPER_CMD_ORIG
+                BIN_BITS=32
+            fi
         fi
     fi
 fi
@@ -900,18 +931,36 @@ fi
 
 prepAdditionalParams() {
     ADDITIONAL_PARA=""
-    if [ ! -n "$PASS_THROUGH" ]
-    then
-        PASS_THROUGH=false
-    fi
-    if [ $PASS_THROUGH = true ] ; then
-        ADDITIONAL_PARA="--"
+    if [ "X${PASS_THROUGH}" = "Xapp_args" -o "X${PASS_THROUGH}" = "Xboth" ] ; then
+        if [ "X${PASS_THROUGH}" = "Xapp_args" ] ; then
+            ADDITIONAL_PARA="--"
+            ARGS_ARE_APP_PARAMS=true
+        fi
         while [ -n "$1" ] ; do
+            if [ ! -n "$ARGS_ARE_APP_PARAMS" ] ; then
+                if [ "$1" = "--" ] ; then
+                    ARGS_ARE_APP_PARAMS=true
+                else
+                    # Check that the arg matches the pattern of a property
+                    case "$1" in
+                        wrapper.*=*)
+                            # Correct, nothing to do
+                            ;;
+                        *=*)
+                            # The property name is not starting with 'wrapper.' so invalid.
+                            COMMAND_PROP=${1%%=*}
+                            eval echo `gettext "WARNING: Encountered an unknown configuration property \'${COMMAND_PROP}\'. When PASS_THROUGH is set to \'both\', any argument before \'--\' should target a valid Wrapper configuration property."`
+                            ;;
+                        *)
+                            # Not a valid assignment.
+                            eval echo `gettext "WARNING: Encountered an invalid configuration property assignment \'$1\'. When PASS_THROUGH is set to \'both\', any argument before \'--\' should be in the format '<property_name>=<value>'."`
+                            ;;
+                    esac
+                fi
+            fi
             ADDITIONAL_PARA="$ADDITIONAL_PARA \"$1\""
             shift
         done
-    elif [ -n "$1" ] ; then
-        eval echo `gettext "WARNING: Extra arguments will be ignored. Please run \'$0 help\' for usage."`
     fi
 }
 
@@ -1297,10 +1346,8 @@ launchinternal() {
     trap launchdtrap TERM 
     if [ "X$pid" = "X" ]
     then 
-        prepAdditionalParams "$@"
-
         # The string passed to eval must handles spaces in paths correctly.
-        COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" wrapper.daemonize=TRUE $APPNAMEPROP $ANCHORPROP $IGNOREPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.37 $ADDITIONAL_PARA"
+        COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" wrapper.daemonize=TRUE $APPNAMEPROP $ANCHORPROP $IGNOREPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.39 $ADDITIONAL_PARA"
         eval $COMMAND_LINE
     else
         eval echo `gettext '$APP_LONG_NAME is already running.'`
@@ -1323,7 +1370,7 @@ console() {
         prepAdditionalParams "$@"
 
         # The string passed to eval must handles spaces in paths correctly.
-        COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" $APPNAMEPROP $ANCHORPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.37 $ADDITIONAL_PARA"
+        COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" $APPNAMEPROP $ANCHORPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.39 $ADDITIONAL_PARA"
         eval $COMMAND_LINE
         COMMAND_EXIT_CODE=$?
         if [ $COMMAND_EXIT_CODE -ne 0 ] ; then
@@ -1787,7 +1834,7 @@ start() {
     prepAdditionalParams "$@"
 
     # The string passed to eval must handles spaces in paths correctly.
-    COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" wrapper.daemonize=TRUE $APPNAMEPROP $ANCHORPROP $IGNOREPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.37 $ADDITIONAL_PARA"
+    COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" wrapper.daemonize=TRUE $APPNAMEPROP $ANCHORPROP $IGNOREPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.39 $ADDITIONAL_PARA"
     eval $COMMAND_LINE
     
     startwait
@@ -1929,6 +1976,15 @@ resume() {
 }
 
 checkInstalled() {
+    # Install status
+    installedStatus=0 # 0: not installed
+                      # 1: installed (default)
+                      # 2: installed with systemd
+                      # 3: installed with upstart
+                      # 4: installed with SRC
+                      # 5: incomplete installation with SRC (lssrc or lsitab failed to return a record)
+    installedWith=""
+
     if [ "$DIST_OS" = "solaris" ] ; then
         if [ -f "/etc/init.d/$APP_NAME" -o -L "/etc/init.d/$APP_NAME" ] ; then
             installedStatus=1
@@ -2585,31 +2641,29 @@ showUsage() {
         echo "";
     fi
     
-    if [ ! -n "$PASS_THROUGH" ]
-    then
-        PASS_THROUGH=false
+    if [ "X${PASS_THROUGH}" = "Xapp_args" ] ; then
+        ARGS=" {JavaAppArgs}"
+    elif [ "X${PASS_THROUGH}" = "Xboth" ] ; then
+        ARGS=" {WrapperProperties} [-- {JavaAppArgs}]"
+    else
+        ARGS=""
     fi
 
     eval MSG=`gettext 'Usage: '`
     if [ -n "$FIXED_COMMAND" ] ; then
-        if [ $PASS_THROUGH = true ] ; then
-            echo "${MSG} $0 {JavaAppArgs}"
-        else
-            echo "${MSG} $0"
-        fi
+        echo "${MSG} $0${ARGS}"
     else
-        if [ -n "$PAUSABLE" ] ; then
-            if [ $PASS_THROUGH = true ] ; then
-                echo "${MSG} $0 [ console {JavaAppArgs} | start {JavaAppArgs} | stop | restart {JavaAppArgs} | condrestart {JavaAppArgs} | pause | resume | status | install | installstart | remove | dump ]"
-            else
-                echo "${MSG} $0 [ console | start | stop | restart | condrestart | pause | resume | status | install | installstart | remove | dump ]"
-            fi
+        checkInstalled
+        if [ $installedStatus -eq 0 ] ; then
+            # not installed, allow arguments to be passed through
+            ARGS_START=$ARGS
         else
-            if [ $PASS_THROUGH = true ] ; then
-                echo "${MSG} $0 [ console {JavaAppArgs} | start {JavaAppArgs} | stop | restart {JavaAppArgs} | condrestart {JavaAppArgs} | status | install | installstart | remove | dump ]"
-            else
-                echo "${MSG} $0 [ console | start | stop | restart | condrestart | status | install | installstart | remove | dump ]"
-            fi
+            ARGS_START=""
+        fi
+        if [ -n "$PAUSABLE" ] ; then
+            echo "${MSG} $0 [ console${ARGS} | start${ARGS_START} | stop | restart${ARGS_START} | condrestart${ARGS_START} | pause | resume | status | install | installstart | remove | dump ]"
+        else
+            echo "${MSG} $0 [ console${ARGS} | start${ARGS_START} | stop | restart${ARGS_START} | condrestart${ARGS_START} | status | install | installstart | remove | dump ]"
         fi
     fi
 
@@ -2634,13 +2688,62 @@ showUsage() {
             echo "`gettext '  dump         Request a Java thread dump if running.'`"
             echo "";
         fi
-        if [ $PASS_THROUGH = true ] ; then
-            echo "`gettext 'JavaAppArgs: Zero or more arguments which will be passed to the Java application.'`"
+        if [ "X${PASS_THROUGH}" = "Xapp_args" -o "X${PASS_THROUGH}" = "Xboth" ] ; then
+            if [ "X${PASS_THROUGH}" = "Xboth" ] ; then
+                echo "WrapperProperties:"
+                echo "`gettext '  Optional configuration properties which will be passed to the Wrapper.'`"
+                echo "";
+            fi
+            echo "JavaAppArgs:"
+            echo "`gettext '  Optional arguments which will be passed to the Java application.'`"
             echo "";
         fi
     fi
 
     exit 1
+}
+
+# Check if arguments are correct. This needs to be done after knowing the
+#  command, the application name and OS (to check the installation status).
+# NOTE: When the validity of the arguments depends on the daemon installation,
+#       make sure to call setServiceManagementTool() before this function.
+#
+# $1 0: no parameter allowed
+#   -1: parameter allowed if not installed
+#    1: parameter allowed
+checkArguments() {
+    # If this is a systemd call (from the systemd service file), we don't want
+    #  to check arguments ('sysd' itself should not be blocking and the user
+    #  may also have edited the file and added additional args in it).
+    if [ -n "$SYSD" ] ; then
+        return
+    fi
+    
+    if [ -n "$FIRST_ARG" ] ; then
+        if [ $1 = -1 ] ; then
+            checkInstalled
+            if [ $installedStatus -eq 0 ] ; then
+                PASS_THROUGH_ALLOWED=true
+            fi
+        elif [ $1 = 1 ] ; then
+            PASS_THROUGH_ALLOWED=true
+        fi
+
+        if [ "X${PASS_THROUGH_ALLOWED}" != "Xtrue" ] ; then
+            eval echo `gettext 'Additional arguments are not allowed with the ${COMMAND} command.'`
+            
+            if [ -n "$FIXED_COMMAND" ] ; then
+                # The command can't be used with PASS_THROUGH, so disable it to show appropriate usage.
+                PASS_THROUGH=false
+            fi
+            showUsage
+            exit 2 # LSB - invalid or excess argument(s)
+        elif [ "X${PASS_THROUGH}" = "Xfalse" ] ; then
+            eval echo `gettext 'Additional arguments are not allowed when PASS_THROUGH is set to false.'`
+            showUsage
+            exit 2 # LSB - invalid or excess argument(s)
+        fi
+    fi
 }
 
 # Resolve the service management tool for linux and aix.
@@ -2718,6 +2821,7 @@ docommand() {
   
     case "$COMMAND" in
         'console')
+            checkArguments 1
             checkUser touchlock "$@"
             if [ ! -n "$FIXED_COMMAND" ] ; then
                 shift
@@ -2727,10 +2831,12 @@ docommand() {
     
         'start')
             setServiceManagementTool
+            checkArguments -1
             startdaemon "$@"
             ;;
     
         'stop')
+            checkArguments 0
             setServiceManagementTool
             if [ "$DIST_OS" = "macosx" -a -f "/Library/LaunchDaemons/${APP_PLIST}" ] ; then
                 macosxStop
@@ -2748,15 +2854,18 @@ docommand() {
     
         'restart')
             setServiceManagementTool
+            checkArguments -1
             restartdaemon "0" "$@"
             ;;
     
         'condrestart')
             setServiceManagementTool
+            checkArguments -1
             restartdaemon "1" "$@"
             ;;
     
         'pause')
+            checkArguments 0
             setServiceManagementTool
             if [ -n "$PAUSABLE" ]
             then
@@ -2767,6 +2876,7 @@ docommand() {
             ;;
     
         'resume')
+            checkArguments 0
             setServiceManagementTool
             if [ -n "$PAUSABLE" ]
             then
@@ -2777,27 +2887,32 @@ docommand() {
             ;;
     
         'status')
+            checkArguments 0
             setServiceManagementTool
             status
             ;;
     
         'install')
+            checkArguments 0
             setServiceManagementTool
             installdaemon "$@"
             ;;
     
         'installstart')
+            checkArguments 0
             setServiceManagementTool
             installdaemon "$@"
             startdaemon "$@"
             ;;
     
         'remove')
+            checkArguments 0
             setServiceManagementTool
             removedaemon
             ;;
     
         'dump')
+            checkArguments 0
             checkUser "" "$COMMAND"
             dump
             ;;
