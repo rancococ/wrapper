@@ -40,7 +40,7 @@ wrapper.lang.folder=../lang
 #********************************************************************
 set.MALLOC_ARENA_MAX=1
 set.WRAPPER_BASE_DIR=%WRAPPER_BIN_DIR%/..
-set.LD_LIBRARY_PATH=.:%LD_LIBRARY_PATH%:%WRAPPER_BASE_DIR%/library
+set.LD_LIBRARY_PATH=.:%LD_LIBRARY_PATH%:%WRAPPER_BASE_DIR%/libcore:%WRAPPER_BASE_DIR%/libextend
 set.JAVA_HOME=%WRAPPER_BASE_DIR%/jre
 set.CLASSPATH=.:%JAVA_HOME%/lib
 
@@ -69,11 +69,12 @@ wrapper.java.classpath.1=%WRAPPER_BASE_DIR%/bin/wrapper-*.jar
 wrapper.java.classpath.2=%WRAPPER_BASE_DIR%/lib/*.jar
 
 # Java Library Path (location of Wrapper.DLL or libwrapper.so)
-wrapper.java.library.path.1=%WRAPPER_BASE_DIR%/library
-wrapper.java.library.path.2=/usr/lib
-wrapper.java.library.path.3=/usr/lib64
-wrapper.java.library.path.4=/usr/local/lib
-wrapper.java.library.path.5=/usr/local/lib64
+wrapper.java.library.path.1=%WRAPPER_BASE_DIR%/libcore
+wrapper.java.library.path.2=%WRAPPER_BASE_DIR%/libextend
+wrapper.java.library.path.3=/usr/lib
+wrapper.java.library.path.4=/usr/lib64
+wrapper.java.library.path.5=/usr/local/lib
+wrapper.java.library.path.6=/usr/local/lib64
 
 # Java Bits.  On applicable platforms, tells the JVM to run in 32 or 64-bit mode.
 wrapper.java.additional.auto_bits=TRUE
