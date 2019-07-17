@@ -91,8 +91,8 @@ fun_create_link_file() {
     return 0;
 }
 
-# entry library
-cd "${base_dir}/../library/"
+# entry libcore
+cd "${base_dir}/../libcore/"
 
 # create link file
 fun_create_link_file
