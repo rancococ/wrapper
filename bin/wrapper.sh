@@ -24,10 +24,10 @@ if [ -x "${base_dir}/wrapper-read-property.sh" ]; then
   . "${base_dir}/wrapper-read-property.sh"
 fi
 # print property
-echo "APP_NAME=${_APP_NAME}"
-echo "APP_LONG_NAME=${_APP_LONG_NAME}"
-echo "APP_DESC=${_APP_DESC}"
-echo "RUN_AS_USER=${_RUN_AS_USER}"
+# echo "APP_NAME=${_APP_NAME}"
+# echo "APP_LONG_NAME=${_APP_LONG_NAME}"
+# echo "APP_DESC=${_APP_DESC}"
+# echo "RUN_AS_USER=${_RUN_AS_USER}"
 #######################################################################################
 
 #

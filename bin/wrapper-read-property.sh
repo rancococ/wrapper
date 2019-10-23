@@ -15,7 +15,7 @@ cd "${base_dir}"
 conf_dir=${base_dir}/../conf
 
 # read config info from wrapper-property.conf
-echo read config info from wrapper-property.conf
+# echo read config info from wrapper-property.conf
 while read line;
 do
     # echo ${line};
