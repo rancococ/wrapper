@@ -40,7 +40,7 @@ wrapper.lang.folder=../lang
 #********************************************************************
 set.MALLOC_ARENA_MAX=1
 set.WRAPPER_BASE_DIR=%WRAPPER_BIN_DIR%/..
-set.LD_LIBRARY_PATH=.:%LD_LIBRARY_PATH%:%WRAPPER_BASE_DIR%/libcore:%WRAPPER_BASE_DIR%/libextend
+set.LD_LIBRARY_PATH=.:%WRAPPER_BASE_DIR%/libcore:%WRAPPER_BASE_DIR%/libextend:/usr/lib:/usr/lib64:/usr/local/lib:/usr/local/lib64
 set.JAVA_HOME=%WRAPPER_BASE_DIR%/jre
 set.CLASSPATH=.:%JAVA_HOME%/lib
 

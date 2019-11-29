@@ -46,7 +46,7 @@ fi
 
 #-----------------------------------------------------------------------------
 # These settings can be modified to fit the needs of your application
-# Optimized for use with version 3.5.40 of the Wrapper.
+# Optimized for use with version 3.5.41 of the Wrapper.
 
 # IMPORTANT - Please always stop and uninstall an application before making
 #             any changes to this file.  Failure to do so could remove the
@@ -562,6 +562,25 @@ case "$DIST_OS" in
         ;;
     'os/390')
         DIST_OS="zos"
+        ;;
+    'linux')
+        if [ -f /etc/fedora-release -o -f /etc/redhat-release -o -f /etc/redhat_version ] ; then
+            if [ "X`command -v /sbin/chkconfig`" != "X" ] ; then
+                DIST_LINUX_FAMILY="Red Hat"
+            fi
+        elif [ -f /etc/SuSE-release ] ; then
+            if [ "X`command -v insserv`" != "X" ] ; then
+                DIST_LINUX_FAMILY="SUSE"
+            fi
+        elif [ -f /etc/lsb-release -o -f /etc/debian_version -o -f /etc/debian_release ] ; then
+            if [ "X`command -v update-rc.d`" != "X" ] ; then
+                DIST_LINUX_FAMILY="Debian"
+            fi
+        fi
+        DIST_LINUX_NAME=`grep "^NAME=" /etc/os-release 2>/dev/null | cut -d= -f 2 | sed 's/\"//g'`
+        if [ "$DIST_LINUX_NAME" = "Amazon Linux" ] && [ "X`command -v /sbin/chkconfig`" != "X" ] ; then
+            DIST_LINUX_FAMILY="Red Hat"
+        fi
         ;;
 esac
 
@@ -1355,7 +1374,7 @@ launchinternal() {
     if [ "X$pid" = "X" ]
     then 
         # The string passed to eval must handles spaces in paths correctly.
-        COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" wrapper.daemonize=TRUE $APPNAMEPROP $ANCHORPROP $IGNOREPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.40 $ADDITIONAL_PARA"
+        COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" wrapper.daemonize=TRUE $APPNAMEPROP $ANCHORPROP $IGNOREPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.41 $ADDITIONAL_PARA"
         eval $COMMAND_LINE
     else
         eval echo `gettext '$APP_LONG_NAME is already running.'`
@@ -1378,7 +1397,7 @@ console() {
         prepAdditionalParams "$@"
 
         # The string passed to eval must handles spaces in paths correctly.
-        COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" $APPNAMEPROP $ANCHORPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.40 $ADDITIONAL_PARA"
+        COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" $APPNAMEPROP $ANCHORPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.41 $ADDITIONAL_PARA"
         eval $COMMAND_LINE
         COMMAND_EXIT_CODE=$?
         if [ $COMMAND_EXIT_CODE -ne 0 ] ; then
@@ -1842,7 +1861,7 @@ start() {
     prepAdditionalParams "$@"
 
     # The string passed to eval must handles spaces in paths correctly.
-    COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" wrapper.daemonize=TRUE $APPNAMEPROP $ANCHORPROP $IGNOREPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.40 $ADDITIONAL_PARA"
+    COMMAND_LINE="$CMDNICE \"$WRAPPER_CMD\" \"$WRAPPER_CONF\" wrapper.syslog.ident=\"$APP_NAME\" wrapper.pidfile=\"$PIDFILE\" wrapper.daemonize=TRUE $APPNAMEPROP $ANCHORPROP $IGNOREPROP $STATUSPROP $COMMANDPROP $LOCKPROP wrapper.script.version=3.5.41 $ADDITIONAL_PARA"
     eval $COMMAND_LINE
     
     startwait
@@ -1993,7 +2012,8 @@ checkInstalled() {
             installedStatus=$SERVICE_INSTALLED_DEFAULT
         fi
     elif [ "$DIST_OS" = "linux" ] ; then
-        if [ -f /etc/redhat-release -o -f /etc/redhat_version -o -f /etc/fedora-release ] ; then
+        case "$DIST_LINUX_FAMILY" in
+        'Red Hat')
             if [ "X$1" != "Xstrict" -o \( -z "$USE_SYSTEMD" -a -z "$USE_UPSTART" \) ] ; then
                 if [ -f "/etc/init.d/$APP_NAME" -o -L "/etc/init.d/$APP_NAME" ] ; then
                     installedStatus=$SERVICE_INSTALLED_DEFAULT
@@ -2012,7 +2032,8 @@ checkInstalled() {
                     installedWith="${installedWith}${installedWith:+, }upstart"
                 fi
             fi
-        elif [ -f /etc/SuSE-release ] ; then
+            ;;
+        'SUSE')
             if [ "X$1" != "Xstrict" -o \( -z "$USE_SYSTEMD" -a -z "$USE_UPSTART" \) ] ; then
                 if [ -f "/etc/init.d/$APP_NAME" -o -L "/etc/init.d/$APP_NAME" ] ; then
                     installedStatus=$SERVICE_INSTALLED_DEFAULT
@@ -2025,7 +2046,8 @@ checkInstalled() {
                     installedWith="${installedWith}${installedWith:+, }systemd"
                 fi
             fi
-        elif [ -f /etc/lsb-release -o -f /etc/debian_version -o -f /etc/debian_release ] && [ "X`command -v update-rc.d`" != "X" ] ; then
+            ;;
+        'Debian')
             if [ "X$1" != "Xstrict" -o \( -z "$USE_SYSTEMD" -a -z "$USE_UPSTART" \) ] ; then
                 if [ -f "/etc/init.d/$APP_NAME" -o -L "/etc/init.d/$APP_NAME" ] ; then
                     installedStatus=$SERVICE_INSTALLED_DEFAULT
@@ -2044,11 +2066,13 @@ checkInstalled() {
                     installedWith="${installedWith}${installedWith:+, }upstart"
                 fi
             fi
-        else
+            ;;
+        *)
             if [ -f "/etc/init.d/$APP_NAME" -o -L "/etc/init.d/$APP_NAME" ] ; then
                 installedStatus=$SERVICE_INSTALLED_DEFAULT
             fi
-        fi
+            ;;
+        esac
     elif [ "$DIST_OS" = "hpux" ] ; then
         if [ -f "/sbin/init.d/$APP_NAME" -o -L "/sbin/init.d/$APP_NAME" ] ; then
             installedStatus=$SERVICE_INSTALLED_DEFAULT
@@ -2142,6 +2166,14 @@ validateAppNameLength() {
     fi
 }
 
+printDetectedDistro() {
+    if [ "X$DIST_LINUX_NAME" != "X" ] ; then
+        eval echo `gettext 'Detected $DIST_LINUX_NAME \($DIST_LINUX_FAMILY family\):'`
+    else
+        eval echo `gettext 'Detected $DIST_LINUX_FAMILY or one of its derivatives:'`
+    fi
+}
+
 installdaemon() {
     mustBeRootOrExit
     
@@ -2162,24 +2194,24 @@ installdaemon() {
             ln -s "/etc/init.d/$APP_NAME" "/etc/rc3.d/S${APP_RUN_LEVEL_S}$APP_NAME_LOWER"
         fi
     elif [ "$DIST_OS" = "linux" ] ; then
-        if [ -f /etc/redhat-release -o -f /etc/redhat_version -o -f /etc/fedora-release ] ; then
-            eval echo `gettext 'Detected RHEL or Fedora:'`
+        case "$DIST_LINUX_FAMILY" in
+        'Red Hat')
+            printDetectedDistro
             if [ $installedStatus -ne $SERVICE_NOT_INSTALLED ] ; then
                 eval echo `gettext ' The $APP_LONG_NAME daemon is already installed with $installedWith.'`
             elif [ -n "$USE_SYSTEMD" ] ; then
                 systemdInstall
-            else
-                if [ -n "$USE_UPSTART" ] ; then
-                    upstartInstall
-                else 
-                    eval echo `gettext ' Installing the $APP_LONG_NAME daemon...'`
-                    ln -s "$REALPATH" "/etc/init.d/$APP_NAME"
-                    /sbin/chkconfig --add "$APP_NAME"
-                    /sbin/chkconfig "$APP_NAME" on
-                fi
+            elif [ -n "$USE_UPSTART" ] ; then
+                upstartInstall
+            else 
+                eval echo `gettext ' Installing the $APP_LONG_NAME daemon...'`
+                ln -s "$REALPATH" "/etc/init.d/$APP_NAME"
+                /sbin/chkconfig --add "$APP_NAME"
+                /sbin/chkconfig "$APP_NAME" on
             fi
-        elif [ -f /etc/SuSE-release ] ; then
-            eval echo `gettext 'Detected SuSE or SLES:'`
+            ;;
+        'SUSE')
+            printDetectedDistro
             if [ $installedStatus -ne $SERVICE_NOT_INSTALLED ] ; then
                 eval echo `gettext ' The $APP_LONG_NAME daemon is already installed with $installedWith.'`
             elif [ -n "$USE_SYSTEMD" ] ; then
@@ -2189,22 +2221,22 @@ installdaemon() {
                 ln -s "$REALPATH" "/etc/init.d/$APP_NAME"
                 insserv "/etc/init.d/$APP_NAME"
             fi
-        elif [ -f /etc/lsb-release -o -f /etc/debian_version -o -f /etc/debian_release ] && [ "X`command -v update-rc.d`" != "X" ] ; then
-            eval echo `gettext 'Detected Ubuntu or Debian:'`
+            ;;
+        'Debian')
+            printDetectedDistro
             if [ $installedStatus -ne $SERVICE_NOT_INSTALLED ] ; then
                 eval echo `gettext ' The $APP_LONG_NAME daemon is already installed with $installedWith.'`
-            else
-                if [ -n "$USE_SYSTEMD" ] ; then
-                    systemdInstall
-                elif [ -n "$USE_UPSTART" ] ; then
-                    upstartInstall
-                else 
-                    eval echo `gettext ' Installing the $APP_LONG_NAME daemon using init.d...'`
-                    ln -s "$REALPATH" "/etc/init.d/$APP_NAME"
-                    update-rc.d "$APP_NAME" defaults
-                fi
+            elif [ -n "$USE_SYSTEMD" ] ; then
+                systemdInstall
+            elif [ -n "$USE_UPSTART" ] ; then
+                upstartInstall
+            else 
+                eval echo `gettext ' Installing the $APP_LONG_NAME daemon using init.d...'`
+                ln -s "$REALPATH" "/etc/init.d/$APP_NAME"
+                update-rc.d "$APP_NAME" defaults
             fi
-        else
+            ;;
+        *)
             eval echo `gettext 'Detected Linux:'`
             if [ $installedStatus -ne $SERVICE_NOT_INSTALLED ] ; then
                 eval echo `gettext ' The $APP_LONG_NAME daemon is already installed.'`
@@ -2220,7 +2252,8 @@ installdaemon() {
                 ln -s "/etc/init.d/$APP_NAME" "/etc/rc5.d/S${APP_RUN_LEVEL_S}$APP_NAME_LOWER"
                 ln -s "/etc/init.d/$APP_NAME" "/etc/rc5.d/K${APP_RUN_LEVEL_K}$APP_NAME_LOWER"
             fi
-        fi
+            ;;
+        esac
     elif [ "$DIST_OS" = "hpux" ] ; then
         eval echo `gettext 'Detected HP-UX:'`
         if [ $installedStatus -ne $SERVICE_NOT_INSTALLED ] ; then
@@ -2265,7 +2298,7 @@ installdaemon() {
             eval echo `gettext ' The $APP_LONG_NAME daemon is already installed.'`
         else
             eval echo `gettext ' Installing the $APP_LONG_NAME daemon...'`
-            sed -i .bak "/${APP_NAME}_enable=\"YES\"/d" /etc/rc.conf
+            sed -i.bak "/${APP_NAME}_enable=\"YES\"/d" /etc/rc.conf
             if [ -f "${REALDIR}/${APP_NAME}.install" ] ; then
                 ln -s "${REALDIR}/${APP_NAME}.install" "/etc/rc.d/$APP_NAME"
             else
@@ -2443,8 +2476,9 @@ removedaemon() {
             exit 1
         fi
     elif [ "$DIST_OS" = "linux" ] ; then
-        if [ -f /etc/redhat-release -o -f /etc/redhat_version -o -f /etc/fedora-release ] ; then
-            eval echo `gettext 'Detected RHEL or Fedora:'`
+        case "$DIST_LINUX_FAMILY" in
+        'Red Hat')
+            printDetectedDistro
             isBitSet $installedStatus $SERVICE_INSTALLED_DEFAULT
             if [ $? -eq 1 ] ; then
                 stopit "0"
@@ -2453,8 +2487,9 @@ removedaemon() {
                 /sbin/chkconfig --del "$APP_NAME"
                 rm -f "/etc/init.d/$APP_NAME"
             fi
-        elif [ -f /etc/SuSE-release ] ; then
-            eval echo `gettext 'Detected SuSE or SLES:'`
+            ;;
+        'SUSE')
+            printDetectedDistro
             isBitSet $installedStatus $SERVICE_INSTALLED_DEFAULT
             if [ $? -eq 1 ] ; then
                 stopit "0"
@@ -2462,8 +2497,9 @@ removedaemon() {
                 insserv -r "/etc/init.d/$APP_NAME"
                 rm -f "/etc/init.d/$APP_NAME"
             fi
-        elif [ -f /etc/lsb-release -o -f /etc/debian_version -o -f /etc/debian_release ] && [ "X`command -v update-rc.d`" != "X" ] ; then
-            eval echo `gettext 'Detected Ubuntu or Debian:'`
+            ;;
+        'Debian')
+            printDetectedDistro
             isBitSet $installedStatus $SERVICE_INSTALLED_DEFAULT
             if [ $? -eq 1 ] ; then
                 stopit "0"
@@ -2471,7 +2507,8 @@ removedaemon() {
                 update-rc.d -f "$APP_NAME" remove
                 rm -f "/etc/init.d/$APP_NAME"
             fi
-        else
+            ;;
+        *)
             eval echo `gettext 'Detected Linux:'`
             isBitSet $installedStatus $SERVICE_INSTALLED_DEFAULT
             if [ $? -eq 1 ] ; then
@@ -2481,7 +2518,8 @@ removedaemon() {
                     rm -f $i
                 done
             fi
-        fi
+            ;;
+        esac
         isBitSet $installedStatus $SERVICE_INSTALLED_SYSTEMD
         if [ $? -eq 1 ] ; then
             systemdRemove
@@ -2540,7 +2578,7 @@ removedaemon() {
             do
                 rm -f $i
             done
-            sed -i .bak "/${APP_NAME}_enable=\"YES\"/d" /etc/rc.conf
+            sed -i.bak "/${APP_NAME}_enable=\"YES\"/d" /etc/rc.conf
         else
             eval echo `gettext ' The $APP_LONG_NAME daemon is not currently installed.'`
             exit 1
