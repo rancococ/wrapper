@@ -1,31 +1,31 @@
 {
     "JmxExporter": {
-        "Enabled": "${WRAPPERS_JMX_EXPORTER_ENABLED}",
-        "Port": "${WRAPPERS_JMX_EXPORTER_PORT}"
+        "Enabled": "${SINGLE_JMX_EXPORTER_ENABLED}",
+        "Port": "${SINGLE_JMX_EXPORTER_PORT}"
     },
-    "HeapDumpEnabled": "${WRAPPERS_HEAP_DUMP_ENABLED}",
-    "PrintGcEnabled": "${WRAPPERS_PRINT_GC_ENABLED}",
-    "Xms": "${WRAPPERS_XMS}",
-    "Xmx": "${WRAPPERS_XMX}",
-    "Xss": "${WRAPPERS_XSS}",
-    "MetaspaceSize": "${WRAPPERS_METASPACE_SIZE}",
-    "MaxMetaspaceSize": "${WRAPPERS_MAX_METASPACE_SIZE}",
+    "HeapDumpEnabled": "${SINGLE_HEAP_DUMP_ENABLED}",
+    "PrintGcEnabled": "${SINGLE_PRINT_GC_ENABLED}",
+    "Xms": "${SINGLE_XMS}",
+    "Xmx": "${SINGLE_XMX}",
+    "Xss": "${SINGLE_XSS}",
+    "MetaspaceSize": "${SINGLE_METASPACE_SIZE}",
+    "MaxMetaspaceSize": "${SINGLE_MAX_METASPACE_SIZE}",
     "RemoteDebug": {
-        "Enabled": "${WRAPPERS_REMOTE_DEBUG_ENABLED}",
-        "Suspend": "${WRAPPERS_REMOTE_DEBUG_SUSPEND}",
-        "Port": "${WRAPPERS_REMOTE_DEBUG_PORT}"
+        "Enabled": "${SINGLE_REMOTE_DEBUG_ENABLED}",
+        "Suspend": "${SINGLE_REMOTE_DEBUG_SUSPEND}",
+        "Port": "${SINGLE_REMOTE_DEBUG_PORT}"
     },
     "JmxRemote": {
-        "Enabled": "${WRAPPERS_JMX_REMOTE_ENABLED}",
-        "Ssl": "${WRAPPERS_JMX_REMOTE_SSL}",
-        "Auth": "${WRAPPERS_JMX_REMOTE_AUTH}",
-        "RmiServerHostname": "${WRAPPERS_JMX_REMOTE_RMI_SERVER_HOSTNAME}",
-        "RmiRegistryPort": "${WRAPPERS_JMX_REMOTE_RMI_REGISTRY_PORT}",
-        "RmiServerPort": "${WRAPPERS_JMX_REMOTE_RMI_SERVER_PORT}"
+        "Enabled": "${SINGLE_JMX_REMOTE_ENABLED}",
+        "Ssl": "${SINGLE_JMX_REMOTE_SSL}",
+        "Auth": "${SINGLE_JMX_REMOTE_AUTH}",
+        "RmiServerHostname": "${SINGLE_JMX_REMOTE_RMI_SERVER_HOSTNAME}",
+        "RmiRegistryPort": "${SINGLE_JMX_REMOTE_RMI_REGISTRY_PORT}",
+        "RmiServerPort": "${SINGLE_JMX_REMOTE_RMI_SERVER_PORT}"
     },
-    "HttpListenPort": "${WRAPPERS_HTTP_LISTEN_PORT}",
-    "ShutdownPort": "${WRAPPERS_SHUTDOWN_PORT}",
+    "HttpListenPort": "${SINGLE_HTTP_LISTEN_PORT}",
+    "ShutdownPort": "${SINGLE_SHUTDOWN_PORT}",
     "OtherParameters": [
-        ${WRAPPERS_OTHER_PARAMETERS}
+        ${SINGLE_OTHER_PARAMETERS}
     ]
 }
