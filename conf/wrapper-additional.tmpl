@@ -1,0 +1,60 @@
+#encoding=UTF-8
+
+#********************************************************************
+# Java Additional Parameters
+#********************************************************************
+{{- if eq .JmxExporter.Enabled "true"}}
+-javaagent:"%WRAPPER_BASE_DIR%/exporter/jmx_prometheus_javaagent-0.12.0.jar={{.JmxExporter.Port}}:%WRAPPER_BASE_DIR%/exporter/jmx_exporter.yml"
+{{- end}}
+-server
+-showversion
+{{- if eq .HeapDumpEnabled "true"}}
+-XX:+HeapDumpOnOutOfMemoryError
+-XX:HeapDumpPath=../temp/
+{{- end}}
+{{- if eq .PrintGcEnabled "true"}}
+-XX:+PrintGCDetails
+-XX:+PrintGCDateStamps
+-XX:+PrintGCTimeStamps
+-XX:+PrintHeapAtGC
+{{- end}}
+-Xloggc:../logs/jvmgc.log
+-Xms{{.Xms}}
+-Xmx{{.Xmx}}
+-Xss{{.Xss}}
+-XX:MetaspaceSize={{.MetaspaceSize}}
+-XX:MaxMetaspaceSize={{.MaxMetaspaceSize}}
+{{- if eq .RemoteDebug.Enabled "true"}}
+-Xint
+-Xdebug
+-Xnoagent
+-Djava.compiler=NONE
+-Xrunjdwp:transport=dt_socket,server=y,suspend={{.RemoteDebug.Suspend}},address={{.RemoteDebug.Port}}
+{{- end}}
+-Djava.security.egd=file:/dev/urandom
+-Djava.awt.headless=true
+-Dfile.encoding=UTF-8
+-Dsun.jnu.encoding=UTF-8
+-Dsun.stdout.encoding=UTF-8
+-Dsun.stderr.encoding=UTF-8
+-Duser.timezone=GMT+8
+{{- if eq .JmxRemote.Enabled "true"}}
+-Dcom.sun.management.jmxremote
+-Dcom.sun.management.jmxremote.ssl={{.JmxRemote.Ssl}}
+-Dcom.sun.management.jmxremote.local.only=false
+-Dcom.sun.management.jmxremote.authenticate={{.JmxRemote.Auth}}
+-Dcom.sun.management.jmxremote.access.file=../conf/jmxremote.access
+-Dcom.sun.management.jmxremote.password.file=../conf/jmxremote.password
+-Djava.rmi.server.hostname={{.JmxRemote.RmiServerHostname}}
+-Drmi.registry.port.platform={{.JmxRemote.RmiRegistryPort}}
+-Drmi.server.port.platform={{.JmxRemote.RmiServerPort}}
+{{- end}}
+-Dhttp.listen.port={{.HttpListenPort}}
+-Dshutdown.port={{.ShutdownPort}}
+
+#********************************************************************
+# Other Parameters
+#********************************************************************
+{{- range .OtherParameters}}
+-D{{.}}
+{{- end}}
