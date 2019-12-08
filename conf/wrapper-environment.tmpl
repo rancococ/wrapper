@@ -1,31 +1,31 @@
 {
     "JmxExporter": {
-        "Enabled": "${TOMCAT_JMX_EXPORTER_ENABLED}",
-        "Port": "${TOMCAT_JMX_EXPORTER_PORT}"
+        "Enabled": "${JVM_JMX_EXPORTER_ENABLED}",
+        "Port": "${JVM_JMX_EXPORTER_PORT}"
     },
-    "HeapDumpEnabled": "${TOMCAT_HEAP_DUMP_ENABLED}",
-    "PrintGcEnabled": "${TOMCAT_PRINT_GC_ENABLED}",
-    "Xms": "${TOMCAT_XMS}",
-    "Xmx": "${TOMCAT_XMX}",
-    "Xss": "${TOMCAT_XSS}",
-    "MetaspaceSize": "${TOMCAT_METASPACE_SIZE}",
-    "MaxMetaspaceSize": "${TOMCAT_MAX_METASPACE_SIZE}",
+    "HeapDumpEnabled": "${JVM_HEAP_DUMP_ENABLED}",
+    "PrintGcEnabled": "${JVM_PRINT_GC_ENABLED}",
+    "Xms": "${JVM_XMS}",
+    "Xmx": "${JVM_XMX}",
+    "Xss": "${JVM_XSS}",
+    "MetaspaceSize": "${JVM_METASPACE_SIZE}",
+    "MaxMetaspaceSize": "${JVM_MAX_METASPACE_SIZE}",
     "RemoteDebug": {
-        "Enabled": "${TOMCAT_REMOTE_DEBUG_ENABLED}",
-        "Suspend": "${TOMCAT_REMOTE_DEBUG_SUSPEND}",
-        "Port": "${TOMCAT_REMOTE_DEBUG_PORT}"
+        "Enabled": "${JVM_REMOTE_DEBUG_ENABLED}",
+        "Suspend": "${JVM_REMOTE_DEBUG_SUSPEND}",
+        "Port": "${JVM_REMOTE_DEBUG_PORT}"
     },
     "JmxRemote": {
-        "Enabled": "${TOMCAT_JMX_REMOTE_ENABLED}",
-        "Ssl": "${TOMCAT_JMX_REMOTE_SSL}",
-        "Auth": "${TOMCAT_JMX_REMOTE_AUTH}",
-        "RmiServerHostname": "${TOMCAT_JMX_REMOTE_RMI_SERVER_HOSTNAME}",
-        "RmiRegistryPort": "${TOMCAT_JMX_REMOTE_RMI_REGISTRY_PORT}",
-        "RmiServerPort": "${TOMCAT_JMX_REMOTE_RMI_SERVER_PORT}"
+        "Enabled": "${JVM_JMX_REMOTE_ENABLED}",
+        "Ssl": "${JVM_JMX_REMOTE_SSL}",
+        "Auth": "${JVM_JMX_REMOTE_AUTH}",
+        "RmiServerHostname": "${JVM_JMX_REMOTE_RMI_SERVER_HOSTNAME}",
+        "RmiRegistryPort": "${JVM_JMX_REMOTE_RMI_REGISTRY_PORT}",
+        "RmiServerPort": "${JVM_JMX_REMOTE_RMI_SERVER_PORT}"
     },
-    "HttpListenPort": "${TOMCAT_HTTP_LISTEN_PORT}",
-    "ShutdownPort": "${TOMCAT_SHUTDOWN_PORT}",
+    "HttpListenPort": "${JVM_HTTP_LISTEN_PORT}",
+    "ShutdownPort": "${JVM_SHUTDOWN_PORT}",
     "OtherParameters": [
-        ${TOMCAT_OTHER_PARAMETERS}
+        ${JVM_OTHER_PARAMETERS}
     ]
 }
