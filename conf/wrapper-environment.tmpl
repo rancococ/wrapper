@@ -1,31 +1,31 @@
 {
     "JmxExporter": {
-        "Enabled": "${SINGLE_JMX_EXPORTER_ENABLED}",
-        "Port": "${SINGLE_JMX_EXPORTER_PORT}"
+        "Enabled": "${JVM_JMX_EXPORTER_ENABLED}",
+        "Port": "${JVM_JMX_EXPORTER_PORT}"
     },
-    "HeapDumpEnabled": "${SINGLE_HEAP_DUMP_ENABLED}",
-    "PrintGcEnabled": "${SINGLE_PRINT_GC_ENABLED}",
-    "Xms": "${SINGLE_XMS}",
-    "Xmx": "${SINGLE_XMX}",
-    "Xss": "${SINGLE_XSS}",
-    "MetaspaceSize": "${SINGLE_METASPACE_SIZE}",
-    "MaxMetaspaceSize": "${SINGLE_MAX_METASPACE_SIZE}",
+    "HeapDumpEnabled": "${JVM_HEAP_DUMP_ENABLED}",
+    "PrintGcEnabled": "${JVM_PRINT_GC_ENABLED}",
+    "Xms": "${JVM_XMS}",
+    "Xmx": "${JVM_XMX}",
+    "Xss": "${JVM_XSS}",
+    "MetaspaceSize": "${JVM_METASPACE_SIZE}",
+    "MaxMetaspaceSize": "${JVM_MAX_METASPACE_SIZE}",
     "RemoteDebug": {
-        "Enabled": "${SINGLE_REMOTE_DEBUG_ENABLED}",
-        "Suspend": "${SINGLE_REMOTE_DEBUG_SUSPEND}",
-        "Port": "${SINGLE_REMOTE_DEBUG_PORT}"
+        "Enabled": "${JVM_REMOTE_DEBUG_ENABLED}",
+        "Suspend": "${JVM_REMOTE_DEBUG_SUSPEND}",
+        "Port": "${JVM_REMOTE_DEBUG_PORT}"
     },
     "JmxRemote": {
-        "Enabled": "${SINGLE_JMX_REMOTE_ENABLED}",
-        "Ssl": "${SINGLE_JMX_REMOTE_SSL}",
-        "Auth": "${SINGLE_JMX_REMOTE_AUTH}",
-        "RmiServerHostname": "${SINGLE_JMX_REMOTE_RMI_SERVER_HOSTNAME}",
-        "RmiRegistryPort": "${SINGLE_JMX_REMOTE_RMI_REGISTRY_PORT}",
-        "RmiServerPort": "${SINGLE_JMX_REMOTE_RMI_SERVER_PORT}"
+        "Enabled": "${JVM_JMX_REMOTE_ENABLED}",
+        "Ssl": "${JVM_JMX_REMOTE_SSL}",
+        "Auth": "${JVM_JMX_REMOTE_AUTH}",
+        "RmiServerHostname": "${JVM_JMX_REMOTE_RMI_SERVER_HOSTNAME}",
+        "RmiRegistryPort": "${JVM_JMX_REMOTE_RMI_REGISTRY_PORT}",
+        "RmiServerPort": "${JVM_JMX_REMOTE_RMI_SERVER_PORT}"
     },
-    "HttpListenPort": "${SINGLE_HTTP_LISTEN_PORT}",
-    "ShutdownPort": "${SINGLE_SHUTDOWN_PORT}",
+    "HttpListenPort": "${JVM_HTTP_LISTEN_PORT}",
+    "ShutdownPort": "${JVM_SHUTDOWN_PORT}",
     "OtherParameters": [
-        ${SINGLE_OTHER_PARAMETERS}
+        ${JVM_OTHER_PARAMETERS}
     ]
 }
