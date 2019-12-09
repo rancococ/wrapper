@@ -24,6 +24,7 @@
 -Xss{{.Xss}}
 -XX:MetaspaceSize={{.MetaspaceSize}}
 -XX:MaxMetaspaceSize={{.MaxMetaspaceSize}}
+-XX:MaxDirectMemorySize={{.MaxDirectMemorySize}}
 {{- if eq .RemoteDebug.Enabled "true"}}
 -Xint
 -Xdebug
