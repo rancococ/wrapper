@@ -151,7 +151,7 @@ wrapper.syslog.loglevel=NONE
 wrapper.ignore_sequence_gaps=TRUE
 
 # Do not start if the pid file already exists.
-wrapper.pidfile.strict=TRUE
+wrapper.pidfile.strict=FALSE
 
 # Title to use when running as a console
 wrapper.console.title=%APP_NAME%
@@ -270,3 +270,12 @@ wrapper.java.detect_debug_jvm=FALSE
 # print java version
 wrapper.java.version.output=TRUE
 wrapper.java.version.timeout=60
+
+# wrapper's pid and status
+wrapper.pidfile=./%APP_NAME%.pid
+wrapper.statusfile=./%APP_NAME%.status
+
+# java's pid, id, status
+wrapper.java.pidfile=./%APP_NAME%.java.pid
+wrapper.java.idfile=./%APP_NAME%.java.id
+wrapper.java.statusfile=./%APP_NAME%.java.status
