@@ -1,32 +1,61 @@
 {
-    "JmxExporter": {
-        "Enabled": "${JVM_JMX_EXPORTER_ENABLED}",
-        "Port": "${JVM_JMX_EXPORTER_PORT}"
+    "Prop": {
+        "AppName": "${PROP_APP_NAME}",
+        "AppLongName": "${PROP_APP_LONG_NAME}",
+        "AppDesc":"${PROP_APP_DESC}",
+        "RunAsUser":"${PROP_RUN_AS_USER}"
     },
-    "HeapDumpEnabled": "${JVM_HEAP_DUMP_ENABLED}",
-    "PrintGcEnabled": "${JVM_PRINT_GC_ENABLED}",
-    "Xms": "${JVM_XMS}",
-    "Xmx": "${JVM_XMX}",
-    "Xss": "${JVM_XSS}",
-    "MetaspaceSize": "${JVM_METASPACE_SIZE}",
-    "MaxMetaspaceSize": "${JVM_MAX_METASPACE_SIZE}",
-    "MaxDirectMemorySize": "${JVM_MAX_DIRECT_MEMORY_SIZE}",
-    "RemoteDebug": {
-        "Enabled": "${JVM_REMOTE_DEBUG_ENABLED}",
-        "Suspend": "${JVM_REMOTE_DEBUG_SUSPEND}",
-        "Port": "${JVM_REMOTE_DEBUG_PORT}"
+    "Jvm": {
+        "JmxExporter": {
+            "Enabled": "${JVM_JMX_EXPORTER_ENABLED}",
+            "Port": "${JVM_JMX_EXPORTER_PORT}"
+        },
+        "HeapDumpEnabled": "${JVM_HEAP_DUMP_ENABLED}",
+        "PrintGcEnabled": "${JVM_PRINT_GC_ENABLED}",
+        "Xms": "${JVM_XMS}",
+        "Xmx": "${JVM_XMX}",
+        "Xss": "${JVM_XSS}",
+        "MetaspaceSize": "${JVM_METASPACE_SIZE}",
+        "MaxMetaspaceSize": "${JVM_MAX_METASPACE_SIZE}",
+        "MaxDirectMemorySize": "${JVM_MAX_DIRECT_MEMORY_SIZE}",
+        "RemoteDebug": {
+            "Enabled": "${JVM_REMOTE_DEBUG_ENABLED}",
+            "Suspend": "${JVM_REMOTE_DEBUG_SUSPEND}",
+            "Port": "${JVM_REMOTE_DEBUG_PORT}"
+        },
+        "JmxRemote": {
+            "Enabled": "${JVM_JMX_REMOTE_ENABLED}",
+            "Ssl": "${JVM_JMX_REMOTE_SSL}",
+            "Auth": "${JVM_JMX_REMOTE_AUTH}",
+            "RmiServerHostname": "${JVM_JMX_REMOTE_RMI_SERVER_HOSTNAME}",
+            "RmiRegistryPort": "${JVM_JMX_REMOTE_RMI_REGISTRY_PORT}",
+            "RmiServerPort": "${JVM_JMX_REMOTE_RMI_SERVER_PORT}"
+        },
+        "HttpListenPort": "${JVM_HTTP_LISTEN_PORT}",
+        "ShutdownPort": "${JVM_SHUTDOWN_PORT}",
+        "OtherParameters": [
+            ${JVM_OTHER_PARAMETERS}
+        ]
     },
-    "JmxRemote": {
-        "Enabled": "${JVM_JMX_REMOTE_ENABLED}",
-        "Ssl": "${JVM_JMX_REMOTE_SSL}",
-        "Auth": "${JVM_JMX_REMOTE_AUTH}",
-        "RmiServerHostname": "${JVM_JMX_REMOTE_RMI_SERVER_HOSTNAME}",
-        "RmiRegistryPort": "${JVM_JMX_REMOTE_RMI_REGISTRY_PORT}",
-        "RmiServerPort": "${JVM_JMX_REMOTE_RMI_SERVER_PORT}"
-    },
-    "HttpListenPort": "${JVM_HTTP_LISTEN_PORT}",
-    "ShutdownPort": "${JVM_SHUTDOWN_PORT}",
-    "OtherParameters": [
-        ${JVM_OTHER_PARAMETERS}
-    ]
+    "Tomcat": {
+        "SetCharacterEncodingFilter": {
+            "Enabled": "${TOMCAT_SET_CHARACTER_ENCODING_FILTER_ENABLED}",
+            "Encoding": "${TOMCAT_SET_CHARACTER_ENCODING_FILTER_ENCODING}",
+            "AsyncSupported": "${TOMCAT_SET_CHARACTER_ENCODING_FILTER_ASYNC_SUPPORTED}"
+        },
+        "FailedRequestFilter": {
+            "Enabled": "${TOMCAT_FAILED_REQUEST_FILTER_ENABLED}",
+            "AsyncSupported": "${TOMCAT_FAILED_REQUEST_FILTER_ASYNC_SUPPORTED}"
+        },
+        "CorsFilter": {
+            "Enabled": "${TOMCAT_CORS_FILTER_ENABLED}",
+            "AllowedOrigins": "${TOMCAT_CORS_FILTER_ALLOWED_ORIGINS}",
+            "AllowedMethods": "${TOMCAT_CORS_FILTER_ALLOWED_METHODS}",
+            "AllowedHeaders": "${TOMCAT_CORS_FILTER_ALLOWED_HEADERS}",
+            "ExposedHeaders": "${TOMCAT_CORS_FILTER_EXPOSED_HEADERS}",
+            "SupportCredentials": "${TOMCAT_CORS_FILTER_SUPPORT_CREDENTIALS}",
+            "PreflightMaxage": "${TOMCAT_CORS_FILTER_PREFLIGHT_MAXAGE}",
+            "AsyncSupported": "${TOMCAT_CORS_FILTER_ASYNC_SUPPORTED}"
+        }
+    }
 }
