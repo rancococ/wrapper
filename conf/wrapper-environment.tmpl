@@ -1,32 +1,41 @@
 {
-    "JmxExporter": {
-        "Enabled": "${JVM_JMX_EXPORTER_ENABLED}",
-        "Port": "${JVM_JMX_EXPORTER_PORT}"
+    "Prop": {
+        "AppName": "${PROP_APP_NAME}",
+        "AppLongName": "${PROP_APP_LONG_NAME}",
+        "AppDesc": "${PROP_APP_DESC}",
+        "AppLauncher": "${PROP_APP_LAUNCHER}",
+        "RunAsUser": "${PROP_RUN_AS_USER}"
     },
-    "HeapDumpEnabled": "${JVM_HEAP_DUMP_ENABLED}",
-    "PrintGcEnabled": "${JVM_PRINT_GC_ENABLED}",
-    "Xms": "${JVM_XMS}",
-    "Xmx": "${JVM_XMX}",
-    "Xss": "${JVM_XSS}",
-    "MetaspaceSize": "${JVM_METASPACE_SIZE}",
-    "MaxMetaspaceSize": "${JVM_MAX_METASPACE_SIZE}",
-    "MaxDirectMemorySize": "${JVM_MAX_DIRECT_MEMORY_SIZE}",
-    "RemoteDebug": {
-        "Enabled": "${JVM_REMOTE_DEBUG_ENABLED}",
-        "Suspend": "${JVM_REMOTE_DEBUG_SUSPEND}",
-        "Port": "${JVM_REMOTE_DEBUG_PORT}"
-    },
-    "JmxRemote": {
-        "Enabled": "${JVM_JMX_REMOTE_ENABLED}",
-        "Ssl": "${JVM_JMX_REMOTE_SSL}",
-        "Auth": "${JVM_JMX_REMOTE_AUTH}",
-        "RmiServerHostname": "${JVM_JMX_REMOTE_RMI_SERVER_HOSTNAME}",
-        "RmiRegistryPort": "${JVM_JMX_REMOTE_RMI_REGISTRY_PORT}",
-        "RmiServerPort": "${JVM_JMX_REMOTE_RMI_SERVER_PORT}"
-    },
-    "HttpListenPort": "${JVM_HTTP_LISTEN_PORT}",
-    "ShutdownPort": "${JVM_SHUTDOWN_PORT}",
-    "OtherParameters": [
-        ${JVM_OTHER_PARAMETERS}
-    ]
+    "Jvm": {
+        "JmxExporter": {
+            "Enabled": "${JVM_JMX_EXPORTER_ENABLED}",
+            "Port": "${JVM_JMX_EXPORTER_PORT}"
+        },
+        "HeapDumpEnabled": "${JVM_HEAP_DUMP_ENABLED}",
+        "PrintGcEnabled": "${JVM_PRINT_GC_ENABLED}",
+        "Xms": "${JVM_XMS}",
+        "Xmx": "${JVM_XMX}",
+        "Xss": "${JVM_XSS}",
+        "MetaspaceSize": "${JVM_METASPACE_SIZE}",
+        "MaxMetaspaceSize": "${JVM_MAX_METASPACE_SIZE}",
+        "MaxDirectMemorySize": "${JVM_MAX_DIRECT_MEMORY_SIZE}",
+        "RemoteDebug": {
+            "Enabled": "${JVM_REMOTE_DEBUG_ENABLED}",
+            "Suspend": "${JVM_REMOTE_DEBUG_SUSPEND}",
+            "Port": "${JVM_REMOTE_DEBUG_PORT}"
+        },
+        "JmxRemote": {
+            "Enabled": "${JVM_JMX_REMOTE_ENABLED}",
+            "Ssl": "${JVM_JMX_REMOTE_SSL}",
+            "Auth": "${JVM_JMX_REMOTE_AUTH}",
+            "RmiServerHostname": "${JVM_JMX_REMOTE_RMI_SERVER_HOSTNAME}",
+            "RmiRegistryPort": "${JVM_JMX_REMOTE_RMI_REGISTRY_PORT}",
+            "RmiServerPort": "${JVM_JMX_REMOTE_RMI_SERVER_PORT}"
+        },
+        "HttpListenPort": "${JVM_HTTP_LISTEN_PORT}",
+        "ShutdownPort": "${JVM_SHUTDOWN_PORT}",
+        "OtherParameters": [
+            ${JVM_OTHER_PARAMETERS}
+        ]
+    }
 }
