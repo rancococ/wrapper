@@ -2,7 +2,7 @@
 
 ## 项目介绍
 
-java service wrapper 3.5.41
+java service wrapper 3.5.43
    >  - support windows x86-32 and x86-64
    >  - support linux x86-32 and x86-64
    >  - include apr-1.7.0, apr-util-1.6.1, crypto-1.1, expat-1.6.0, ssl-1.1, z-1.2.11, tcnative-1.2.23
