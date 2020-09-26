@@ -587,7 +587,7 @@
 -->
 
   <!-- A filter that enables cross-origin requests.   -->
-<!--
+<!---->
     <filter>
         <filter-name>CorsFilter</filter-name>
         <filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
@@ -617,7 +617,7 @@
         </init-param>
         <async-supported>true</async-supported>
     </filter>
--->
+
 
   <!-- ==================== Built In Filter Mappings ====================== -->
 
@@ -655,12 +655,12 @@
 -->
 
   <!-- The mapping for the CORS Filter -->
-<!--
+<!---->
     <filter-mapping>
         <filter-name>CorsFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
--->
+
 
   <!-- ==================== Default Session Configuration ================= -->
   <!-- You can set the default session timeout (in minutes) for all newly   -->
