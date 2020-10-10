@@ -17,7 +17,7 @@ base_dir="$( cd -P "$( dirname "$source" )" && pwd )"
 cd "${base_dir}"
 
 if [ -x "${base_dir}/wrapper-create-linkfile.sh" ]; then
-    "${base_dir}/wrapper-create-linkfile.sh"
+    "${base_dir}/wrapper-create-linkfile.sh" >/dev/null 2>&1
 fi
 
 if [ -x "${base_dir}/wrapper.sh" ]; then
