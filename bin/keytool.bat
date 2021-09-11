@@ -14,6 +14,10 @@ rem ============================================================================
 
 cd /d %~dp0
 set "WORK_DIR=%CD%"
+cd ..
+set "BASE_DIR=%CD%"
+cd %WORK_DIR%
+SET PATH=.;%WORK_DIR%;%BASE_DIR%\jre\bin;%PATH%
 rem echo %WORK_DIR%
 
 rem restart console
@@ -26,8 +30,7 @@ rem 版权信息
 set "PROG_NAME=keytool"
 set "COPY_RIGHT=www.cdjdgm.com"
 
-rem 命令工具
-set "keytoolcmd=jre\bin\keytool"
+rem 步骤计数
 set "step=1"
 
 rem 当前日期和时间
@@ -56,7 +59,7 @@ rem ============================================================================
 
 rem 打印基本信息
 echo.
-echo start...
+rem echo start...
 rem echo CopyRight %COPY_RIGHT%
 rem echo current time : %YYYYMMDDHHMISS%
 echo.
@@ -68,9 +71,10 @@ call :read_config
 rem 执行命令
 call :execute_command
 
-echo end...
+rem echo end...
 echo.
-pause>nul
+pause
+rem pause>nul
 goto :eof
 
 rem 程序结束
@@ -82,6 +86,11 @@ rem 读取命令行参数
 :read_parameters
 rem echo [Step %step%]: read command line parameters
 rem set /a step+=1
+
+rem no param
+if "%1x" == "x" goto :no_param
+
+rem read param
 :loop_read_param
 if "%1x" == "x" goto :end_read_param
 rem echo [%1]
@@ -91,6 +100,11 @@ if "%1x" == "--helpx" (
     goto :loop_read_param
 )
 if "%1x" == "-helpx" (
+    if "!arg_subcmd!x" == "x" ( set "arg_subcmd=help" )
+    shift
+    goto :loop_read_param
+)
+if "%1x" == "--hx" (
     if "!arg_subcmd!x" == "x" ( set "arg_subcmd=help" )
     shift
     goto :loop_read_param
@@ -185,6 +199,10 @@ rem echo arg_file=%arg_file%
 rem echo.
 goto :eof
 
+:no_param
+rem echo.
+goto :eof
+
 rem read config info from keytool.env
 :read_config
 rem echo [Step %step%]: read config info from keytool.env
@@ -198,8 +216,12 @@ if exist "%WORK_DIR%\keytool.env" (
             set "key=%%~a"
             set "value=%%~b"
             rem echo key=!key!,value=!value!
-            set "!key!=!value:/=\!"
-            rem echo !key!=!value:/=\!
+            if "!value!x" neq "x" (
+                set "!key!=!value:/=\!"
+                rem echo !key!=!value:/=\!
+            ) else (
+                set "!key!="
+            )
         )
     )
 ) else (
@@ -213,7 +235,7 @@ goto :eof
 rem call command
 :execute_command
 if [%arg_subcmd%]==[] (
-    call :show_help
+    call :show_menu
 ) else if [%arg_subcmd%]==[help] (
     call :show_help
 ) else if [%arg_subcmd%]==[init] (
@@ -228,6 +250,38 @@ if [%arg_subcmd%]==[] (
     call :execute_delete_command
 )
 if not errorlevel 1 goto :eof
+echo.
+goto :eof
+
+rem show menu
+:show_menu
+cls
+echo.
+echo   Enter the number 1-5 to execute the command
+echo==================================================
+echo.
+echo           [1] : Initialize Cacerts
+echo           [2] : List Certs
+echo           [3] : Import Certs
+echo           [4] : Export Certs
+echo           [5] : Delete Certs
+echo.
+echo           [q] : Exit Menu
+echo.
+echo==================================================
+echo.
+set /p menu_input=enter the number : 
+if "%menu_input%x" equ "1x" call :execute_init_command
+if "%menu_input%x" equ "2x" call :execute_list_command
+if "%menu_input%x" equ "3x" call :execute_import_command
+if "%menu_input%x" equ "4x" call :execute_export_command
+if "%menu_input%x" equ "5x" call :execute_delete_command
+if "%menu_input%x" equ "qx" goto :eof
+set "menu_input="
+set "step=1"
+pause
+goto show_menu
+
 echo.
 goto :eof
 
@@ -261,10 +315,10 @@ rem execute init command
 echo [Step %step%]: execute init command
 set /a step+=1
 
-echo copy %WORK_DIR%\..\jre\lib\security\cacerts to %WORK_DIR%\..\%trustfile%
-echo f | xcopy "%WORK_DIR%\..\jre\lib\security\cacerts" "%WORK_DIR%\..\%trustfile%" /s/e/i/y
+echo copy %BASE_DIR%\jre\lib\security\cacerts to %BASE_DIR%\%trustfile%
+echo f | xcopy "%BASE_DIR%\jre\lib\security\cacerts" "%BASE_DIR%\%trustfile%" /s/e/i/y
 echo change storepasswd to %newstorepass%
-"%WORK_DIR%\..\%keytoolcmd%" -storepasswd -v -keystore "%WORK_DIR%\..\%trustfile%" -storepass "%oldstorepass%" -new "%newstorepass%"
+"%BASE_DIR%\jre\bin\keytool" -storepasswd -v -keystore "%BASE_DIR%\%trustfile%" -storepass "%oldstorepass%" -new "%newstorepass%"
 echo successfully executed init command.
 
 echo.
@@ -277,11 +331,11 @@ set /a step+=1
 
 if "%arg_alias%x" == "x" (
     echo list all entries in the keystore
-    "%WORK_DIR%\..\%keytoolcmd%" -list -keystore "%WORK_DIR%\..\%trustfile%" -storepass "%newstorepass%"
+    "%BASE_DIR%\jre\bin\keytool" -list -keystore "%BASE_DIR%\%trustfile%" -storepass "%newstorepass%"
     echo successfully executed list command.
 ) else (
     echo list the specified entries in the keystore : [%arg_alias%]
-    "%WORK_DIR%\..\%keytoolcmd%" -list -v -keystore "%WORK_DIR%\..\%trustfile%" -alias "%arg_alias%" -storepass "%newstorepass%"
+    "%BASE_DIR%\jre\bin\keytool" -list -v -keystore "%BASE_DIR%\%trustfile%" -alias "%arg_alias%" -storepass "%newstorepass%"
     echo successfully executed list command.
 )
 
@@ -295,34 +349,34 @@ set /a step+=1
 
 if "%arg_alias%x" == "x" (
     if "%arg_file%x" == "x" (
-        rem import certificate from %WORK_DIR%\..\%certspath%
-        echo import certificate from %WORK_DIR%\..\%certspath%\*.crt
-        for /f "delims=" %%a in ('dir /b "%WORK_DIR%\..\%certspath%" ^| findstr .crt') do (
+        rem import certificate from %BASE_DIR%\%certspath%
+        echo import certificate from %BASE_DIR%\%certspath%\*.crt
+        for /f "delims=" %%a in ('dir /b "%BASE_DIR%\%certspath%" ^| findstr .crt') do (
             rem echo %%a
             set file=%%a
             set alias=!file:~0,-4!
             rem echo !alias!
             rem echo !file!
             rem echo check if alias [!alias!] exists
-            rem "%WORK_DIR%\..\%keytoolcmd%" -list -keystore "%WORK_DIR%\..\%trustfile%" -alias "!alias!" -storepass "%newstorepass%"
+            rem "%BASE_DIR%\jre\bin\keytool" -list -keystore "%BASE_DIR%\%trustfile%" -alias "!alias!" -storepass "%newstorepass%"
             echo delete alias [!alias!]...
-            "%WORK_DIR%\..\%keytoolcmd%" -delete -keystore "%WORK_DIR%\..\%trustfile%" -alias "!alias!" -storepass "%newstorepass%"
+            "%BASE_DIR%\jre\bin\keytool" -delete -keystore "%BASE_DIR%\%trustfile%" -alias "!alias!" -storepass "%newstorepass%"
             echo import certificate, alias : [!alias!], file : [!file!]
-            "%WORK_DIR%\..\%keytoolcmd%" -importcert -noprompt -keystore "%WORK_DIR%\..\%trustfile%" -alias "!alias!" -file "%WORK_DIR%\..\%certspath%\!file!" -storepass "%newstorepass%"
+            "%BASE_DIR%\jre\bin\keytool" -importcert -noprompt -keystore "%BASE_DIR%\%trustfile%" -alias "!alias!" -file "%BASE_DIR%\%certspath%\!file!" -storepass "%newstorepass%"
         )
-        echo import certificate from %WORK_DIR%\..\%certspath%\*.cer
-        for /f "delims=" %%a in ('dir /b "%WORK_DIR%\..\%certspath%" ^| findstr .cer') do (
+        echo import certificate from %BASE_DIR%\%certspath%\*.cer
+        for /f "delims=" %%a in ('dir /b "%BASE_DIR%\%certspath%" ^| findstr .cer') do (
             rem echo %%a
             set file=%%a
             set alias=!file:~0,-4!
             rem echo !alias!
             rem echo !file!
             rem echo check if alias [!alias!] exists
-            rem "%WORK_DIR%\..\%keytoolcmd%" -list -keystore "%WORK_DIR%\..\%trustfile%" -alias "!alias!" -storepass "%newstorepass%"
+            rem "%BASE_DIR%\jre\bin\keytool" -list -keystore "%BASE_DIR%\%trustfile%" -alias "!alias!" -storepass "%newstorepass%"
             echo delete alias [!alias!]...
-            "%WORK_DIR%\..\%keytoolcmd%" -delete -keystore "%WORK_DIR%\..\%trustfile%" -alias "!alias!" -storepass "%newstorepass%"
+            "%BASE_DIR%\jre\bin\keytool" -delete -keystore "%BASE_DIR%\%trustfile%" -alias "!alias!" -storepass "%newstorepass%"
             echo import certificate, alias : [!alias!], file : [!file!]
-            "%WORK_DIR%\..\%keytoolcmd%" -importcert -noprompt -keystore "%WORK_DIR%\..\%trustfile%" -alias "!alias!" -file "%WORK_DIR%\..\%certspath%\!file!" -storepass "%newstorepass%"
+            "%BASE_DIR%\jre\bin\keytool" -importcert -noprompt -keystore "%BASE_DIR%\%trustfile%" -alias "!alias!" -file "%BASE_DIR%\%certspath%\!file!" -storepass "%newstorepass%"
         )
         echo successfully executed import command.
     ) else (
@@ -336,7 +390,7 @@ if "%arg_alias%x" == "x" (
             echo the file [%arg_file%] does not exist
         ) else (
             echo import certificate, alias : [%arg_alias%], file : [%arg_file%]
-            "%WORK_DIR%\..\%keytoolcmd%" -importcert -noprompt -keystore "%WORK_DIR%\..\%trustfile%" -alias "%arg_alias%" -file "%arg_file%" -storepass "%newstorepass%"
+            "%BASE_DIR%\jre\bin\keytool" -importcert -noprompt -keystore "%BASE_DIR%\%trustfile%" -alias "%arg_alias%" -file "%arg_file%" -storepass "%newstorepass%"
             echo successfully executed import command.
         )
     )
@@ -363,7 +417,7 @@ if exist "%arg_file%" (
     goto :eof
 )
 echo export certificate, alias : [%arg_alias%], file : [%arg_file%]
-"%WORK_DIR%\..\%keytoolcmd%" -exportcert -rfc -keystore "%WORK_DIR%\..\%trustfile%" -alias "%arg_alias%" -file "%arg_file%" -storepass "%newstorepass%"
+"%BASE_DIR%\jre\bin\keytool" -exportcert -rfc -keystore "%BASE_DIR%\%trustfile%" -alias "%arg_alias%" -file "%arg_file%" -storepass "%newstorepass%"
 echo successfully executed export command.
 
 echo.
@@ -379,7 +433,7 @@ if "%arg_alias%x" == "x" (
     goto :eof
 )
 echo delete certificate, alias : [%arg_alias%]
-"%WORK_DIR%\..\%keytoolcmd%" -delete -v -keystore "%WORK_DIR%\..\%trustfile%" -alias "%arg_alias%" -storepass "%newstorepass%"
+"%BASE_DIR%\jre\bin\keytool" -delete -v -keystore "%BASE_DIR%\%trustfile%" -alias "%arg_alias%" -storepass "%newstorepass%"
 echo successfully executed delete command.
 
 echo.
